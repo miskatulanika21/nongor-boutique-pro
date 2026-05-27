@@ -10,8 +10,10 @@ import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
+import type { Product } from "@/data/mock";
+
 export const Route = createFileRoute("/_shop/product/$slug")({
-  loader: ({ params }) => {
+  loader: ({ params }): { product: Product } => {
     const product = products.find((p) => p.slug === params.slug);
     if (!product) throw notFound();
     return { product };
