@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_shop/product/$slug")({
 });
 
 function Product() {
-  const { product: p } = Route.useLoaderData();
+  const { product: p } = Route.useLoaderData() as { product: Product };
   const shop = useShop();
   const nav = useNavigate();
   const [size, setSize] = useState(p.sizes[1] ?? p.sizes[0]);
