@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext, useRouter, HeadContent, Scripts, Link } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { ShopProvider } from "@/store/shop";
-import { AdminProvider } from "@/store/admin";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -42,9 +41,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Nongor — Handmade Bangladeshi Kurti & Cultural Fashion" },
       { name: "description", content: "Premium handmade kurti by Bangladeshi artisans. Maroon and antique gold, hand-stitched, cultural elegance." },
-      { property: "og:title", content: "Nongor — নোঙর" },
-      { property: "og:description", content: "Handmade elegance rooted in Bangladeshi culture." },
+      { property: "og:title", content: "Nongor — Handmade Bangladeshi Kurti & Cultural Fashion" },
+      { property: "og:description", content: "Premium handmade kurti by Bangladeshi artisans. Maroon and antique gold, hand-stitched, cultural elegance." },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "Nongor — Handmade Bangladeshi Kurti & Cultural Fashion" },
+      { name: "twitter:description", content: "Premium handmade kurti by Bangladeshi artisans. Maroon and antique gold, hand-stitched, cultural elegance." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/Bb4ybUMPp4azUvURRKLzzipuBRC2/social-images/social-1779991693226-ChatGPT_Image_May_29,_2026,_12_08_02_AM.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/Bb4ybUMPp4azUvURRKLzzipuBRC2/social-images/social-1779991693226-ChatGPT_Image_May_29,_2026,_12_08_02_AM.webp" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -67,12 +71,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <AdminProvider>
-        <ShopProvider>
-          <Outlet />
-          <Toaster position="top-center" />
-        </ShopProvider>
-      </AdminProvider>
+      <ShopProvider>
+        <Outlet />
+        <Toaster position="top-center" />
+      </ShopProvider>
     </QueryClientProvider>
   );
 }
