@@ -17,6 +17,7 @@ import { Route as AdminReviewsRouteImport } from './routes/admin.reviews'
 import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPaymentsRouteImport } from './routes/admin.payments'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
@@ -26,6 +27,7 @@ import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as ShopWishlistRouteImport } from './routes/_shop.wishlist'
 import { Route as ShopTrackOrderRouteImport } from './routes/_shop.track-order'
+import { Route as ShopSizeGuideRouteImport } from './routes/_shop.size-guide'
 import { Route as ShopShopRouteImport } from './routes/_shop.shop'
 import { Route as ShopOrderSuccessRouteImport } from './routes/_shop.order-success'
 import { Route as ShopCheckoutRouteImport } from './routes/_shop.checkout'
@@ -70,6 +72,11 @@ const AdminPaymentsRoute = AdminPaymentsRouteImport.update({
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
@@ -117,6 +124,11 @@ const ShopTrackOrderRoute = ShopTrackOrderRouteImport.update({
   path: '/track-order',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopSizeGuideRoute = ShopSizeGuideRouteImport.update({
+  id: '/size-guide',
+  path: '/size-guide',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ShopShopRoute = ShopShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -156,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof ShopCheckoutRoute
   '/order-success': typeof ShopOrderSuccessRoute
   '/shop': typeof ShopShopRoute
+  '/size-guide': typeof ShopSizeGuideRoute
   '/track-order': typeof ShopTrackOrderRoute
   '/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -165,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -179,6 +193,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof ShopCheckoutRoute
   '/order-success': typeof ShopOrderSuccessRoute
   '/shop': typeof ShopShopRoute
+  '/size-guide': typeof ShopSizeGuideRoute
   '/track-order': typeof ShopTrackOrderRoute
   '/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -188,6 +203,7 @@ export interface FileRoutesByTo {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -205,6 +221,7 @@ export interface FileRoutesById {
   '/_shop/checkout': typeof ShopCheckoutRoute
   '/_shop/order-success': typeof ShopOrderSuccessRoute
   '/_shop/shop': typeof ShopShopRoute
+  '/_shop/size-guide': typeof ShopSizeGuideRoute
   '/_shop/track-order': typeof ShopTrackOrderRoute
   '/_shop/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -214,6 +231,7 @@ export interface FileRoutesById {
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/payments': typeof AdminPaymentsRoute
   '/admin/products': typeof AdminProductsRoute
@@ -232,6 +250,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/order-success'
     | '/shop'
+    | '/size-guide'
     | '/track-order'
     | '/wishlist'
     | '/admin/categories'
@@ -241,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/inventory'
+    | '/admin/login'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -255,6 +275,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/order-success'
     | '/shop'
+    | '/size-guide'
     | '/track-order'
     | '/wishlist'
     | '/admin/categories'
@@ -264,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/inventory'
+    | '/admin/login'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -280,6 +302,7 @@ export interface FileRouteTypes {
     | '/_shop/checkout'
     | '/_shop/order-success'
     | '/_shop/shop'
+    | '/_shop/size-guide'
     | '/_shop/track-order'
     | '/_shop/wishlist'
     | '/admin/categories'
@@ -289,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin/customers'
     | '/admin/dashboard'
     | '/admin/inventory'
+    | '/admin/login'
     | '/admin/orders'
     | '/admin/payments'
     | '/admin/products'
@@ -361,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminOrdersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/inventory'
@@ -424,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopTrackOrderRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/size-guide': {
+      id: '/_shop/size-guide'
+      path: '/size-guide'
+      fullPath: '/size-guide'
+      preLoaderRoute: typeof ShopSizeGuideRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/_shop/shop': {
       id: '/_shop/shop'
       path: '/shop'
@@ -475,6 +513,7 @@ interface ShopRouteChildren {
   ShopCheckoutRoute: typeof ShopCheckoutRoute
   ShopOrderSuccessRoute: typeof ShopOrderSuccessRoute
   ShopShopRoute: typeof ShopShopRoute
+  ShopSizeGuideRoute: typeof ShopSizeGuideRoute
   ShopTrackOrderRoute: typeof ShopTrackOrderRoute
   ShopWishlistRoute: typeof ShopWishlistRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -487,6 +526,7 @@ const ShopRouteChildren: ShopRouteChildren = {
   ShopCheckoutRoute: ShopCheckoutRoute,
   ShopOrderSuccessRoute: ShopOrderSuccessRoute,
   ShopShopRoute: ShopShopRoute,
+  ShopSizeGuideRoute: ShopSizeGuideRoute,
   ShopTrackOrderRoute: ShopTrackOrderRoute,
   ShopWishlistRoute: ShopWishlistRoute,
   ShopIndexRoute: ShopIndexRoute,
@@ -503,6 +543,7 @@ interface AdminRouteChildren {
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPaymentsRoute: typeof AdminPaymentsRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -518,6 +559,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCustomersRoute: AdminCustomersRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminInventoryRoute: AdminInventoryRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPaymentsRoute: AdminPaymentsRoute,
   AdminProductsRoute: AdminProductsRoute,

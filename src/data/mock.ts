@@ -259,11 +259,12 @@ export type Order = {
   date: string;
   items: number;
   total: number;
-  payment: "bKash" | "Nagad" | "Rocket" | "COD" | "Card";
+  payment: "bKash" | "Nagad" | "Rocket" | "COD" | "Card" | "ShurjoPay";
   paymentStatus: "Pending" | "Paid" | "Failed" | "COD" | "Verification Needed";
   status: "Pending" | "Confirmed" | "Processing" | "Packed" | "Shipped" | "Delivered" | "Cancelled";
   courier?: string;
   trackingId?: string;
+  trxId?: string;
 };
 
 export const orders: Order[] = [
