@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useShop } from "@/store/shop";
+import { useShop, getProductStock } from "@/store/shop";
 import { taka } from "@/lib/format";
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag } from "lucide-react";
 import { useState } from "react";
@@ -41,24 +41,35 @@ function Cart() {
 
       <div className="mt-8 grid lg:grid-cols-[1fr_380px] gap-8">
         <div className="space-y-4">
-          {cart.map((it, i) => (
-            <div key={i} className="bg-card rounded-2xl p-4 shadow-soft flex gap-4">
-              <img src={it.image} alt={it.name} className="h-28 w-24 md:h-36 md:w-28 object-cover rounded-xl" />
-              <div className="flex-1">
-                <Link to="/product/$slug" params={{ slug: it.slug }} className="font-display text-base md:text-lg hover:text-maroon">{it.name}</Link>
-                <div className="text-xs text-muted-foreground mt-1">Size: {it.size} · Color: {it.color}</div>
-                <div className="mt-3 flex items-center justify-between">
-                  <div className="flex items-center border border-border rounded-full">
-                    <button onClick={() => updateQty(i, it.qty - 1)} className="h-8 w-8 grid place-items-center"><Minus className="h-3 w-3" /></button>
-                    <span className="w-6 text-center text-sm">{it.qty}</span>
-                    <button onClick={() => updateQty(i, it.qty + 1)} className="h-8 w-8 grid place-items-center"><Plus className="h-3 w-3" /></button>
+          {cart.map((it, i) => {
+            const maxStock = getProductStock(it.productId, it.size, it.color);
+            const isAtMax = it.qty >= maxStock;
+            return (
+              <div key={i} className="bg-card rounded-2xl p-4 shadow-soft flex gap-4">
+                <img src={it.image} alt={it.name} className="h-28 w-24 md:h-36 md:w-28 object-cover rounded-xl" />
+                <div className="flex-1">
+                  <Link to="/product/$slug" params={{ slug: it.slug }} className="font-display text-base md:text-lg hover:text-maroon">{it.name}</Link>
+                  <div className="text-xs text-muted-foreground mt-1">Size: {it.size} · Color: {it.color}</div>
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="flex items-center border border-border rounded-full">
+                      <button onClick={() => updateQty(i, it.qty - 1)} className="h-8 w-8 grid place-items-center"><Minus className="h-3 w-3" /></button>
+                      <span className="w-6 text-center text-sm">{it.qty}</span>
+                      <button
+                        onClick={() => updateQty(i, it.qty + 1)}
+                        disabled={isAtMax}
+                        className={`h-8 w-8 grid place-items-center transition ${isAtMax ? "opacity-30 cursor-not-allowed text-muted-foreground" : ""}`}
+                        title={isAtMax ? "Maximum stock limit reached" : "Increase quantity"}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="font-display text-lg text-maroon">{taka(it.price * it.qty)}</div>
                   </div>
-                  <div className="font-display text-lg text-maroon">{taka(it.price * it.qty)}</div>
                 </div>
+                <button onClick={() => removeFromCart(i)} className="self-start text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
               </div>
-              <button onClick={() => removeFromCart(i)} className="self-start text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-            </div>
-          ))}
+            );
+          })}
           <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-maroon font-medium">← Continue shopping</Link>
         </div>
 

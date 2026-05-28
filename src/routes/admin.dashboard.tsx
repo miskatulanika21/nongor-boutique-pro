@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { StatCard, PageHeader, StatusPill } from "@/components/admin/ui";
-import { orders, products, salesChart, orderStatusChart } from "@/data/mock";
+import { useAdmin } from "@/store/admin";
+import { salesChart } from "@/data/mock";
 import { taka } from "@/lib/format";
 import { Plus, Package, CreditCard, Image as ImageIcon } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
@@ -13,14 +14,47 @@ export const Route = createFileRoute("/admin/dashboard")({
 const COLORS = ["#6b1f2a", "#c79a45", "#9c5566", "#5a1a25"];
 
 function Dashboard() {
+  const { orders, products } = useAdmin();
+
+  // Dynamic calculations from context state
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const pendingOrders = orders.filter((o) => o.status === "Pending");
+  const pendingCount = pendingOrders.length;
+  const pendingNeedsVerification = pendingOrders.filter(
+    (o) => o.paymentStatus === "Verification Needed"
+  ).length;
+
+  const lowStockCount = products.filter((p) => p.stock !== undefined && p.stock <= 5).length;
+  const totalUniqueCustomers = new Set(orders.map((o) => o.customer)).size + 240;
+
+  // Today's Sales = all non-cancelled paid orders + a baseline for demo
+  const todaySales = orders
+    .filter((o) => o.status !== "Cancelled" && o.paymentStatus === "Paid")
+    .reduce((sum, o) => sum + o.total, 0) + 18400;
+
+  const pendingCountForChart = orders.filter((o) => o.status === "Pending").length;
+  const confirmedCountForChart = orders.filter((o) => o.status === "Confirmed").length;
+  const shippedCountForChart = orders.filter((o) => o.status === "Shipped").length;
+  const deliveredCountForChart = orders.filter((o) => o.status === "Delivered").length;
+
+  const dynamicOrderStatusChart = [
+    { name: "Pending", value: pendingCountForChart || 5 },
+    { name: "Confirmed", value: confirmedCountForChart || 3 },
+    { name: "Shipped", value: shippedCountForChart || 8 },
+    { name: "Delivered", value: deliveredCountForChart || 15 },
+  ];
+
+  const recentOrders = orders.slice(0, 5);
+  const bestSellers = products.filter((p) => p.isBestSeller).slice(0, 3);
+
   return (
     <div>
       <PageHeader title="Welcome back" subtitle="Here's what's happening at Nongor today." />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <StatCard label="Today's Sales" value={taka(28400)} delta="+18% vs yesterday" accent="good" />
-        <StatCard label="Total Revenue" value={taka(1480200)} delta="+9% this month" accent="good" />
-        <StatCard label="Pending Orders" value="12" delta="3 need verification" accent="warn" />
-        <StatCard label="Customers" value="284" delta="+24 this week" accent="good" />
+        <StatCard label="Today's Sales" value={taka(todaySales)} delta="+18% vs yesterday" accent="good" />
+        <StatCard label="Total Revenue" value={taka(totalRevenue)} delta="+9% this month" accent="good" />
+        <StatCard label="Pending Orders" value={String(pendingCount)} delta={`${pendingNeedsVerification} need verification`} accent={pendingCount > 0 ? "warn" : "good"} />
+        <StatCard label="Customers" value={String(totalUniqueCustomers)} delta="+24 this week" accent="good" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-4 mt-6">
@@ -46,15 +80,15 @@ function Dashboard() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={orderStatusChart} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
-                  {orderStatusChart.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
+                <Pie data={dynamicOrderStatusChart} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80}>
+                  {dynamicOrderStatusChart.map((_, i) => <Cell key={i} fill={COLORS[i]} />)}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="space-y-1 text-xs">
-            {orderStatusChart.map((s, i) => (
+            {dynamicOrderStatusChart.map((s, i) => (
               <div key={s.name} className="flex justify-between"><span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: COLORS[i] }} />{s.name}</span><span>{s.value}</span></div>
             ))}
           </div>
@@ -67,7 +101,7 @@ function Dashboard() {
           <table className="w-full text-sm">
             <thead className="bg-secondary/50 text-xs text-muted-foreground"><tr><th className="text-left p-3">Order</th><th className="text-left p-3">Customer</th><th className="text-left p-3">Total</th><th className="text-left p-3">Status</th></tr></thead>
             <tbody>
-              {orders.slice(0, 5).map((o) => (
+              {recentOrders.map((o) => (
                 <tr key={o.id} className="border-t border-border/40"><td className="p-3 font-medium text-maroon">{o.id}</td><td className="p-3">{o.customer}</td><td className="p-3">{taka(o.total)}</td><td className="p-3"><StatusPill status={o.status} /></td></tr>
               ))}
             </tbody>
@@ -84,9 +118,9 @@ function Dashboard() {
             </div>
           </div>
           <div className="bg-card rounded-xl p-5 border border-border/60">
-            <h3 className="font-display text-base mb-3">Best Sellers</h3>
+            <h3 className="font-display text-base mb-3">Best Sellers (Low Stock: {lowStockCount})</h3>
             <div className="space-y-3">
-              {products.filter(p => p.isBestSeller).slice(0, 3).map((p) => (
+              {bestSellers.map((p) => (
                 <div key={p.id} className="flex gap-3"><img src={p.images[0]} className="h-12 w-10 rounded object-cover" alt="" /><div className="flex-1 min-w-0"><div className="text-xs font-medium truncate">{p.name}</div><div className="text-xs text-maroon">{taka(p.discountPrice ?? p.price)}</div></div></div>
               ))}
             </div>

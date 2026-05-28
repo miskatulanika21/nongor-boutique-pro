@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Outlet, createRootRouteWithContext, useRouter, HeadContent, Scripts, Link } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { ShopProvider } from "@/store/shop";
+import { AdminProvider } from "@/store/admin";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -66,10 +67,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <ShopProvider>
-        <Outlet />
-        <Toaster position="top-center" />
-      </ShopProvider>
+      <AdminProvider>
+        <ShopProvider>
+          <Outlet />
+          <Toaster position="top-center" />
+        </ShopProvider>
+      </AdminProvider>
     </QueryClientProvider>
   );
 }

@@ -1,7 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Package, ShoppingBag, CreditCard, Truck, Users, FolderTree, Ticket, FileImage, Boxes, Star, Settings, Search, Bell, ChevronDown, X, Menu, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 import { useState, type ReactNode } from "react";
+import { useAdmin } from "@/store/admin";
 
 const links = [
   { to: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard, group: "Overview" },
@@ -24,6 +25,13 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const active = links.find((l) => path.startsWith(l.to));
+  const { logout } = useAdmin();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: "/admin/login" });
+  };
 
   const Sidebar = (
     <div className="bg-sidebar text-sidebar-foreground h-full flex flex-col">
@@ -71,6 +79,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
         <Link to="/" className="flex items-center gap-2 text-xs text-sidebar-foreground/65 hover:text-sidebar-primary transition">
           <LogOut className="h-3.5 w-3.5" /> Back to store
         </Link>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 text-xs text-sidebar-foreground/65 hover:text-maroon transition w-full text-left bg-transparent border-0 cursor-pointer p-0"
+        >
+          <LogOut className="h-3.5 w-3.5" /> Log Out
+        </button>
         <div className="text-[10px] text-sidebar-foreground/40 font-bengali">নোঙর · Admin</div>
       </div>
     </div>

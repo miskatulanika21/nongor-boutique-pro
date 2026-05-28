@@ -12,4 +12,14 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    resolve: {
+      alias: {
+        // recharts v2 imports individual lodash CJS modules (lodash/map, lodash/get, etc.)
+        // whose internal require('./_xyz') calls fail under Vite 7's native ESM resolution.
+        // Aliasing lodash → lodash-es redirects to proper ESM modules.
+        lodash: "lodash-es",
+      },
+    },
+  },
 });

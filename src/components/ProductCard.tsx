@@ -3,6 +3,7 @@ import { Heart, ShoppingBag, Eye } from "lucide-react";
 import type { Product } from "@/data/mock";
 import { taka } from "@/lib/format";
 import { useShop, quickAddToCart } from "@/store/shop";
+import { isOutOfStock, isLowStock, getStock } from "@/lib/stock";
 import { toast } from "sonner";
 
 export function ProductCard({ p }: { p: Product }) {
@@ -10,6 +11,8 @@ export function ProductCard({ p }: { p: Product }) {
   const wished = shop.wishlist.includes(p.id);
   const price = p.discountPrice ?? p.price;
   const discount = p.discountPrice ? Math.round(((p.price - p.discountPrice) / p.price) * 100) : 0;
+  const outOfStock = isOutOfStock(p);
+  const lowStock = isLowStock(p);
   return (
     <div className="group relative">
       <div className="relative overflow-hidden rounded-2xl bg-cream aspect-[4/5] shadow-soft ring-1 ring-hairline/60 transition-all duration-500 ease-soft group-hover:shadow-elegant group-hover:-translate-y-1">
@@ -41,6 +44,11 @@ export function ProductCard({ p }: { p: Product }) {
               Only {p.stock} left
             </span>
           )}
+          {outOfStock && (
+            <span className="bg-charcoal/90 text-primary-foreground text-[10px] uppercase tracking-[0.15em] font-semibold px-2.5 py-1 rounded-full">
+              Sold Out
+            </span>
+          )}
         </div>
 
         {/* Wishlist */}
@@ -57,8 +65,9 @@ export function ProductCard({ p }: { p: Product }) {
         {/* Quick actions */}
         <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-400 ease-soft">
           <button
-            onClick={() => { quickAddToCart(shop, p); toast.success("Added to your bag"); }}
-            className="flex-1 btn-maroon rounded-full py-2.5 text-[11px] uppercase tracking-[0.15em] font-semibold flex items-center justify-center gap-1.5"
+            onClick={() => { if (!outOfStock) { quickAddToCart(shop, p); toast.success("Added to your bag"); } }}
+            disabled={outOfStock}
+            className="flex-1 btn-maroon rounded-full py-2.5 text-[11px] uppercase tracking-[0.15em] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ShoppingBag className="h-3.5 w-3.5" /> Add to Bag
           </button>

@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Heart, Truck, ShieldCheck, Scissors } from "lucide-react";
-import { products, categories, testimonials } from "@/data/mock";
+import { ArrowRight, Sparkles, Heart, Truck, ShieldCheck, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
+import { categories, testimonials } from "@/data/mock";
+import { useNewArrivals, useBestSellers, useAllProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import logo from "@/assets/nongor-logo.png";
+import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/_shop/")({
   head: () => ({
@@ -15,8 +17,68 @@ export const Route = createFileRoute("/_shop/")({
 });
 
 function Home() {
-  const newArrivals = products.filter((p) => p.isNew).slice(0, 4);
-  const bestSellers = products.filter((p) => p.isBestSeller).slice(0, 4);
+  const { products: newArrivals } = useNewArrivals(4);
+  const { products: bestSellers } = useBestSellers(4);
+  const { products: allProducts } = useAllProducts();
+
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [autoplay, setAutoplay] = useState(true);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const heroSlides = [
+    {
+      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80",
+      label: "Maroon Nakshi Kurti",
+      price: "৳2,690",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
+      label: "Golden Mustard Kurti",
+      price: "৳2,490",
+    },
+    {
+      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80",
+      label: "Antique Ivory Kurti",
+      price: "৳2,890",
+    },
+  ];
+
+  useEffect(() => {
+    if (!autoplay) return;
+    const interval = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % heroSlides.length);
+    }, 5500);
+    return () => clearInterval(interval);
+  }, [autoplay, heroSlides.length]);
+
+  const handleNext = () => {
+    setActiveIdx((prev) => (prev + 1) % heroSlides.length);
+  };
+
+  const handlePrev = () => {
+    setActiveIdx((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  };
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) handleNext();
+    if (isRightSwipe) handlePrev();
+  };
 
   return (
     <div>
@@ -47,21 +109,73 @@ function Home() {
             <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
               <div><span className="font-display text-2xl text-maroon">100%</span><div>Handmade</div></div>
               <div className="h-8 w-px bg-border" />
-              <div><span className="font-display text-2xl text-maroon">64+</span><div>Artisans</div></div>
+              <div><span className="font-display text-xl text-maroon">Small-batch</span><div>Production</div></div>
               <div className="h-8 w-px bg-border" />
               <div><span className="font-display text-2xl text-maroon">★ 4.9</span><div>Customer love</div></div>
             </div>
           </div>
           <div className="relative">
             <div className="absolute -inset-6 bg-gradient-to-br from-gold/20 via-maroon/10 to-transparent rounded-[3rem] blur-2xl" />
-            <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-elegant bg-cream">
-              <img src="https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80" alt="Handmade kurti" className="w-full h-full object-cover" />
-              <div className="absolute bottom-6 left-6 right-6 bg-ivory/90 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 shadow-soft">
-                <img src={logo} alt="" className="h-10 w-10" />
-                <div>
-                  <div className="text-xs text-muted-foreground">Featured piece</div>
-                  <div className="font-display text-base">Maroon Nakshi Kurti — ৳2,690</div>
+            <div
+              className="relative aspect-[4/5] rounded-[2rem] overflow-hidden shadow-elegant bg-cream group select-none"
+              onMouseEnter={() => setAutoplay(false)}
+              onMouseLeave={() => setAutoplay(true)}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
+              {heroSlides.map((slide, idx) => (
+                <div
+                  key={idx}
+                  className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+                    idx === activeIdx ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0 pointer-events-none"
+                  }`}
+                >
+                  <img
+                    src={slide.image}
+                    alt={slide.label}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute bottom-6 left-6 right-6 bg-ivory/90 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 shadow-soft z-20">
+                    <img src={logo} alt="" className="h-10 w-10" />
+                    <div>
+                      <div className="text-xs text-muted-foreground">Featured piece</div>
+                      <div className="font-display text-base">
+                        {slide.label} — {slide.price}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              ))}
+
+              {/* Navigation Arrows */}
+              <button
+                onClick={handlePrev}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-ivory/80 backdrop-blur-sm text-maroon flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-maroon hover:text-primary-foreground transition-all duration-300 shadow-soft cursor-pointer border-0"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={handleNext}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-ivory/80 backdrop-blur-sm text-maroon flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-maroon hover:text-primary-foreground transition-all duration-300 shadow-soft cursor-pointer border-0"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+
+              {/* Page Indicator Dots */}
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-30 flex gap-1.5 bg-charcoal/10 backdrop-blur-sm px-2.5 py-1.5 rounded-full">
+                {heroSlides.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveIdx(idx)}
+                    className={`h-1.5 w-1.5 rounded-full transition-all duration-300 cursor-pointer border-0 p-0 ${
+                      idx === activeIdx ? "bg-maroon w-3.5" : "bg-charcoal/40 hover:bg-charcoal/70"
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -109,11 +223,11 @@ function Home() {
             <div className="inline-block text-gold text-xs uppercase tracking-[0.3em]">Our Craft</div>
             <h2 className="mt-4 font-display text-4xl md:text-5xl leading-tight">Every stitch carries a story</h2>
             <p className="mt-5 text-primary-foreground/85 leading-relaxed">
-              Inspired by the centuries-old tradition of Nakshi Kantha — the embroidered quilts of rural Bengal — Nongor brings hand craftsmanship into everyday wear. Our artisans, mostly women from Jamalpur and Tangail, sew each kurti by hand in small batches, never in factories.
+              Inspired by the centuries-old tradition of Nakshi Kantha — the embroidered quilts of rural Bengal — Nongor brings hand craftsmanship into everyday wear. Our artisans, mostly women from rural Bangladesh, sew each kurti by hand in small batches, never in factories.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-6">
-              <div><div className="font-display text-3xl text-gold">14 days</div><div className="text-sm text-primary-foreground/70">Average craft time per kurti</div></div>
-              <div><div className="font-display text-3xl text-gold">Fair</div><div className="text-sm text-primary-foreground/70">Wages paid directly to artisans</div></div>
+              <div><div className="font-display text-2xl text-gold">Slow Craft</div><div className="text-sm text-primary-foreground/70">Crafted with patience</div></div>
+              <div><div className="font-display text-2xl text-gold">Empower</div><div className="text-sm text-primary-foreground/70">Supporting local makers</div></div>
             </div>
           </div>
         </div>
@@ -125,7 +239,7 @@ function Home() {
         <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[
             { icon: Heart, title: "Handmade with Care", desc: "Sewn one at a time by women artisans" },
-            { icon: Scissors, title: "Premium Fabric", desc: "Sourced from Tangail & Jamalpur weavers" },
+            { icon: Scissors, title: "Premium Fabric", desc: "Selected for comfort and cultural elegance" },
             { icon: Sparkles, title: "Cultural Design", desc: "Nakshi-inspired motifs, modern fits" },
             { icon: ShieldCheck, title: "Secure Order", desc: "bKash, Nagad, COD — verified delivery" },
           ].map((f, i) => (
@@ -167,7 +281,7 @@ function Home() {
       <section className="container-narrow py-10">
         <SectionHeading eyebrow="Follow @nongor.bd" title="From the studio" />
         <div className="mt-8 grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-          {products.slice(0, 6).map((p) => (
+          {allProducts.slice(0, 6).map((p) => (
             <div key={p.id} className="aspect-square rounded-xl overflow-hidden bg-cream">
               <img src={p.images[0]} alt="" className="w-full h-full object-cover hover:scale-110 transition duration-700" />
             </div>

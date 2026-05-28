@@ -1,35 +1,31 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { products } from "@/data/mock";
 import { taka } from "@/lib/format";
-import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus } from "lucide-react";
+import { getStock, isOutOfStock, isLowStock } from "@/lib/stock";
+import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { useShop } from "@/store/shop";
+import { useProductBySlug, usePublishedProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
-import type { Product } from "@/data/mock";
+import type { Product as ProductType } from "@/data/mock";
 
 export const Route = createFileRoute("/_shop/product/$slug")({
-  loader: ({ params }): { product: Product } => {
-    const product = products.find((p) => p.slug === params.slug);
-    if (!product) throw notFound();
-    return { product };
-  },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.product.name} — Nongor` },
-      { name: "description", content: loaderData?.product.description },
-      { property: "og:image", content: loaderData?.product.images[0] },
-    ],
+  head: () => ({
+    meta: [{ title: "Product — Nongor" }],
   }),
   component: Product,
 });
 
 function Product() {
-  const { product: p } = Route.useLoaderData() as { product: Product };
+  const { slug } = Route.useParams();
+  const { product: p } = useProductBySlug(slug);
+  const { products: allPublished } = usePublishedProducts();
+  if (!p) return <div className="container-narrow py-20 text-center"><h1 className="font-display text-3xl">Product not found</h1></div>;
+
   const shop = useShop();
   const nav = useNavigate();
   const [size, setSize] = useState(p.sizes[1] ?? p.sizes[0]);
@@ -37,10 +33,15 @@ function Product() {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const price = p.discountPrice ?? p.price;
-  const related = products.filter((x) => x.id !== p.id).slice(0, 4);
+  const related = allPublished.filter((x) => x.id !== p.id).slice(0, 4);
+
+  const stock = getStock(p, size, color);
+  const outOfStock = isOutOfStock(p, size, color);
+  const lowStock = isLowStock(p, size, color);
 
   const add = () => {
-    shop.addToCart({ productId: p.id, slug: p.slug, name: p.name, image: p.images[0], price, size, color, qty });
+    if (outOfStock) return;
+    shop.addToCart({ productId: p.id, slug: p.slug, name: p.name, image: p.images[0], price, size, color, qty: Math.min(qty, stock) });
     toast.success("Added to bag");
   };
   const buyNow = () => { add(); nav({ to: "/checkout" }); };
@@ -116,22 +117,28 @@ function Product() {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-border rounded-full">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="h-11 w-11 grid place-items-center"><Minus className="h-4 w-4" /></button>
+                <button onClick={() => setQty(Math.max(1, qty - 1))} disabled={outOfStock} className="h-11 w-11 grid place-items-center disabled:opacity-30"><Minus className="h-4 w-4" /></button>
                 <span className="w-8 text-center font-medium">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} className="h-11 w-11 grid place-items-center"><Plus className="h-4 w-4" /></button>
+                <button onClick={() => setQty(Math.min(stock, qty + 1))} disabled={outOfStock || qty >= stock} className="h-11 w-11 grid place-items-center disabled:opacity-30"><Plus className="h-4 w-4" /></button>
               </div>
-              <div className="text-xs text-muted-foreground">
-                <div className="font-medium text-maroon">{p.stock} in stock</div>
-                <div>Fabric: {p.fabric}</div>
+              <div className="text-xs">
+                {outOfStock ? (
+                  <div className="font-medium text-destructive flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Out of stock</div>
+                ) : lowStock ? (
+                  <div className="font-medium text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Only {stock} left!</div>
+                ) : (
+                  <div className="font-medium text-maroon">{stock} in stock</div>
+                )}
+                <div className="text-muted-foreground">Fabric: {p.fabric}</div>
               </div>
             </div>
           </div>
 
           <div className="mt-7 flex gap-3">
-            <button onClick={add} className="flex-1 bg-maroon hover:bg-maroon-deep text-primary-foreground rounded-full py-4 font-semibold tracking-wide flex items-center justify-center gap-2 transition shadow-elegant">
-              <ShoppingBag className="h-4 w-4" /> Add to Bag
+            <button onClick={add} disabled={outOfStock} className="flex-1 bg-maroon hover:bg-maroon-deep text-primary-foreground rounded-full py-4 font-semibold tracking-wide flex items-center justify-center gap-2 transition shadow-elegant disabled:opacity-50 disabled:cursor-not-allowed">
+              <ShoppingBag className="h-4 w-4" /> {outOfStock ? "Out of Stock" : "Add to Bag"}
             </button>
-            <button onClick={buyNow} className="flex-1 border-2 border-maroon text-maroon hover:bg-maroon hover:text-primary-foreground rounded-full py-4 font-semibold tracking-wide transition">Buy Now</button>
+            <button onClick={buyNow} disabled={outOfStock} className="flex-1 border-2 border-maroon text-maroon hover:bg-maroon hover:text-primary-foreground rounded-full py-4 font-semibold tracking-wide transition disabled:opacity-50 disabled:cursor-not-allowed">Buy Now</button>
             <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition">
               <Heart className={`h-5 w-5 ${shop.wishlist.includes(p.id) ? "fill-maroon text-maroon" : ""}`} />
             </button>
@@ -163,7 +170,7 @@ function Product() {
             </TabsContent>
             <TabsContent value="return" className="text-sm pt-3">7-day return & exchange. Item must be unused with tags. See full policy.</TabsContent>
             <TabsContent value="handmade" className="text-sm pt-3">
-              This piece was hand-stitched by our artisans in Jamalpur. Each kurti takes ~14 days to make. Minor variation in stitch pattern is the signature of true handwork.
+              This piece was carefully hand-stitched by artisans in Bangladesh. Each kurti is crafted over days, not hours. Minor variation in stitch pattern is the signature of true handwork.
             </TabsContent>
           </Tabs>
         </div>
