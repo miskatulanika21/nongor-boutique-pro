@@ -54,9 +54,10 @@ export function Footer() {
         <div className="md:col-span-3">
           <h4 className="text-[11px] uppercase tracking-[0.22em] text-gold mb-4">Visit Us</h4>
           <ul className="space-y-3 text-sm text-primary-foreground/75">
-            <li className="flex items-start gap-2.5"><MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" /> Dhanmondi 27, Dhaka, Bangladesh</li>
-            <li className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-gold" /> +880 1700-000000</li>
-            <li className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-gold" /> hello@nongor.com.bd</li>
+            <li className="flex items-start gap-2.5"><MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" /><span>Dhanmondi 27, Dhaka, Bangladesh</span></li>
+            <li className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-gold" /><span>+880 1700-000000</span></li>
+            <li className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-gold" /><span>hello@nongor.com.bd</span></li>
+
           </ul>
         </div>
       </div>
