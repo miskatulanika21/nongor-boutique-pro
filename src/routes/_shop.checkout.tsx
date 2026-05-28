@@ -22,8 +22,7 @@ const steps = [
 ];
 
 function Checkout() {
-  const { cart, cartTotal, clearCart } = useShop();
-function Checkout() {
+
   const { cart, cartTotal, clearCart } = useShop();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
