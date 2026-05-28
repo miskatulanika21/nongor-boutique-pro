@@ -1,15 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useShop } from "@/store/shop";
 import { taka } from "@/lib/format";
-import { districts, upazilas } from "@/data/mock";
-import { Check, ShieldCheck, Upload, ChevronRight, Truck, CreditCard, MapPin, User2 } from "lucide-react";
+import { districts, upazilas, coupons } from "@/data/mock";
+import { Check, ShieldCheck, Upload, ChevronRight, Truck, CreditCard, MapPin, User2, Tag, Wallet, X, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_shop/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Nongor" }] }),
   component: Checkout,
 });
+
+const STORE_CREDIT_AVAILABLE = 500; // mock wallet balance
+
 
 const steps = [
   { label: "Information", icon: User2 },
@@ -20,12 +23,80 @@ const steps = [
 
 function Checkout() {
   const { cart, cartTotal, clearCart } = useShop();
+function Checkout() {
+  const { cart, cartTotal, clearCart } = useShop();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [district, setDistrict] = useState("Dhaka");
   const [payment, setPayment] = useState("COD");
-  const delivery = cartTotal > 2500 ? 0 : 80;
-  const total = cartTotal + delivery;
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<(typeof coupons)[number] | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  // Store-credit state
+  const [useCredit, setUseCredit] = useState(false);
+
+  const delivery = useMemo(() => {
+    if (appliedCoupon?.type === "Free Delivery") return 0;
+    return cartTotal > 2500 ? 0 : 80;
+  }, [cartTotal, appliedCoupon]);
+
+  const discount = useMemo(() => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.type === "Percentage") return Math.round((cartTotal * appliedCoupon.value) / 100);
+    if (appliedCoupon.type === "Flat") return appliedCoupon.value;
+    return 0;
+  }, [appliedCoupon, cartTotal]);
+
+  const beforeCredit = Math.max(0, cartTotal - discount + delivery);
+  const creditApplied = useCredit ? Math.min(STORE_CREDIT_AVAILABLE, beforeCredit) : 0;
+  const total = Math.max(0, beforeCredit - creditApplied);
+
+  const applyCoupon = (codeRaw?: string) => {
+    const code = (codeRaw ?? couponInput).trim().toUpperCase();
+    if (!code) return;
+    setCouponError(null);
+    setCouponLoading(true);
+    // Simulate latency
+    setTimeout(() => {
+      setCouponLoading(false);
+      const found = coupons.find((c) => c.code === code);
+      if (!found) {
+        setAppliedCoupon(null);
+        setCouponError("Code not recognised. Try NONGOR10, FESTIVE500, or FREESHIP.");
+        return;
+      }
+      if (!found.active) {
+        setAppliedCoupon(null);
+        setCouponError("This code has expired.");
+        return;
+      }
+      if (cartTotal < found.minOrder) {
+        setAppliedCoupon(null);
+        setCouponError(`Minimum order ${taka(found.minOrder)} required for ${code}.`);
+        return;
+      }
+      setAppliedCoupon(found);
+      setCouponInput(code);
+      toast.success(`${code} applied`, {
+        description:
+          found.type === "Percentage"
+            ? `${found.value}% off your subtotal`
+            : found.type === "Flat"
+            ? `${taka(found.value)} off`
+            : "Free delivery unlocked",
+      });
+    }, 450);
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  };
 
   const submit = () => {
     toast.success("Order placed!");
