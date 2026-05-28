@@ -12,9 +12,12 @@ export type Product = {
   colors: { name: string; hex: string }[];
   images: string[];
   stock: number;
+  stockByVariant?: Record<string, number>;
   rating: number;
   reviewCount: number;
   description: string;
+  occasion?: string;
+  createdAt?: string;
   isNew?: boolean;
   isBestSeller?: boolean;
   featured?: boolean;
