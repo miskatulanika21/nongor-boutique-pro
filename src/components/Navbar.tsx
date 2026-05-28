@@ -1,10 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Search, Heart, ShoppingBag, User, Menu, X, Home, Store, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { useShop } from "@/store/shop";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
+import { SearchDialog, useSearchShortcut } from "./SearchDialog";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -26,6 +26,9 @@ export function Navbar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  useSearchShortcut(openSearch);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -33,6 +36,7 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
 
   return (
     <>
@@ -105,13 +109,19 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-1 md:gap-2">
-            <div className="hidden lg:flex items-center bg-cream/60 border border-hairline rounded-full pl-4 pr-2 w-64 transition focus-within:border-gold focus-within:bg-ivory">
+            <button
+              onClick={openSearch}
+              className="hidden lg:flex items-center gap-2 bg-cream/60 border border-hairline rounded-full pl-4 pr-2 py-1.5 w-64 text-left transition hover:border-gold focus:border-gold"
+              aria-label="Search products"
+            >
               <Search className="h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search handmade kurti…" className="border-0 bg-transparent focus-visible:ring-0 h-9 text-sm" />
-            </div>
-            <button className="lg:hidden p-2.5 rounded-full hover:bg-cream transition" aria-label="Search">
+              <span className="flex-1 text-sm text-muted-foreground/80">Search handmade kurti…</span>
+              <kbd className="text-[10px] tracking-wider text-muted-foreground border border-hairline rounded px-1.5 py-0.5 bg-ivory">⌘K</kbd>
+            </button>
+            <button onClick={openSearch} className="lg:hidden p-2.5 rounded-full hover:bg-cream transition" aria-label="Search">
               <Search className="h-5 w-5" />
             </button>
+
             <Link to="/wishlist" className="p-2.5 rounded-full hover:bg-cream transition relative hidden sm:inline-flex" aria-label="Wishlist">
               <Heart className="h-5 w-5" />
               {wishlist.length > 0 && (
@@ -135,9 +145,11 @@ export function Navbar() {
         </div>
         <div className="divider-gold" />
       </header>
+      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </>
   );
 }
+
 
 export function MobileBottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
