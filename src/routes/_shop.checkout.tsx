@@ -1,15 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useShop } from "@/store/shop";
 import { taka } from "@/lib/format";
-import { districts, upazilas } from "@/data/mock";
-import { Check, ShieldCheck, Upload, ChevronRight, Truck, CreditCard, MapPin, User2 } from "lucide-react";
+import { districts, upazilas, coupons } from "@/data/mock";
+import { Check, ShieldCheck, Upload, ChevronRight, Truck, CreditCard, MapPin, User2, Tag, Wallet, X, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_shop/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Nongor" }] }),
   component: Checkout,
 });
+
+const STORE_CREDIT_AVAILABLE = 500; // mock wallet balance
+
 
 const steps = [
   { label: "Information", icon: User2 },
@@ -19,13 +22,80 @@ const steps = [
 ];
 
 function Checkout() {
+
   const { cart, cartTotal, clearCart } = useShop();
   const nav = useNavigate();
   const [step, setStep] = useState(0);
   const [district, setDistrict] = useState("Dhaka");
   const [payment, setPayment] = useState("COD");
-  const delivery = cartTotal > 2500 ? 0 : 80;
-  const total = cartTotal + delivery;
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<(typeof coupons)[number] | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  // Store-credit state
+  const [useCredit, setUseCredit] = useState(false);
+
+  const delivery = useMemo(() => {
+    if (appliedCoupon?.type === "Free Delivery") return 0;
+    return cartTotal > 2500 ? 0 : 80;
+  }, [cartTotal, appliedCoupon]);
+
+  const discount = useMemo(() => {
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.type === "Percentage") return Math.round((cartTotal * appliedCoupon.value) / 100);
+    if (appliedCoupon.type === "Flat") return appliedCoupon.value;
+    return 0;
+  }, [appliedCoupon, cartTotal]);
+
+  const beforeCredit = Math.max(0, cartTotal - discount + delivery);
+  const creditApplied = useCredit ? Math.min(STORE_CREDIT_AVAILABLE, beforeCredit) : 0;
+  const total = Math.max(0, beforeCredit - creditApplied);
+
+  const applyCoupon = (codeRaw?: string) => {
+    const code = (codeRaw ?? couponInput).trim().toUpperCase();
+    if (!code) return;
+    setCouponError(null);
+    setCouponLoading(true);
+    // Simulate latency
+    setTimeout(() => {
+      setCouponLoading(false);
+      const found = coupons.find((c) => c.code === code);
+      if (!found) {
+        setAppliedCoupon(null);
+        setCouponError("Code not recognised. Try NONGOR10, FESTIVE500, or FREESHIP.");
+        return;
+      }
+      if (!found.active) {
+        setAppliedCoupon(null);
+        setCouponError("This code has expired.");
+        return;
+      }
+      if (cartTotal < found.minOrder) {
+        setAppliedCoupon(null);
+        setCouponError(`Minimum order ${taka(found.minOrder)} required for ${code}.`);
+        return;
+      }
+      setAppliedCoupon(found);
+      setCouponInput(code);
+      toast.success(`${code} applied`, {
+        description:
+          found.type === "Percentage"
+            ? `${found.value}% off your subtotal`
+            : found.type === "Flat"
+            ? `${taka(found.value)} off`
+            : "Free delivery unlocked",
+      });
+    }, 450);
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError(null);
+  };
 
   const submit = () => {
     toast.success("Order placed!");
@@ -215,14 +285,121 @@ function Checkout() {
               </div>
             ))}
           </div>
+          {/* Coupon */}
+          <div className="mt-5 pt-5 border-t border-hairline">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <Tag className="h-3.5 w-3.5 text-gold" /> Promo code
+            </div>
+            {appliedCoupon ? (
+              <div className="mt-2 flex items-center justify-between p-3 rounded-xl bg-emerald-50 border border-emerald-200 animate-fade-up">
+                <div className="flex items-center gap-2 text-sm">
+                  <Check className="h-4 w-4 text-emerald-700" strokeWidth={3} />
+                  <div>
+                    <div className="font-semibold text-emerald-800">{appliedCoupon.code}</div>
+                    <div className="text-[11px] text-emerald-700/80">
+                      {appliedCoupon.type === "Percentage" && `${appliedCoupon.value}% off subtotal`}
+                      {appliedCoupon.type === "Flat" && `${taka(appliedCoupon.value)} off`}
+                      {appliedCoupon.type === "Free Delivery" && "Free delivery"}
+                    </div>
+                  </div>
+                </div>
+                <button onClick={removeCoupon} className="p-1.5 rounded-full hover:bg-emerald-100 text-emerald-800" aria-label="Remove coupon">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    value={couponInput}
+                    onChange={(e) => {
+                      setCouponInput(e.target.value.toUpperCase());
+                      if (couponError) setCouponError(null);
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
+                    placeholder="Enter code"
+                    className={`flex-1 px-3 py-2.5 rounded-lg bg-cream/50 text-sm outline-none border tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground/70 transition ${
+                      couponError ? "border-rose-400 bg-rose-50/50" : "border-hairline focus:border-maroon focus:bg-ivory"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => applyCoupon()}
+                    disabled={!couponInput.trim() || couponLoading}
+                    className="px-4 py-2.5 rounded-lg bg-maroon text-primary-foreground text-xs font-semibold disabled:opacity-50 inline-flex items-center gap-1.5 hover:bg-maroon/90 transition"
+                  >
+                    {couponLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+                {couponError && (
+                  <p className="mt-2 text-[11px] text-rose-700 flex items-center gap-1.5 animate-fade-up">
+                    <X className="h-3.5 w-3.5" /> {couponError}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {coupons
+                    .filter((c) => c.active)
+                    .slice(0, 3)
+                    .map((c) => (
+                      <button
+                        key={c.code}
+                        onClick={() => applyCoupon(c.code)}
+                        className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-full border border-gold/40 text-gold-deep hover:bg-gold/10 transition"
+                      >
+                        <Sparkles className="h-3 w-3 inline mr-1 -mt-0.5" />
+                        {c.code}
+                      </button>
+                    ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Store credit */}
+          <div className="mt-4 pt-4 border-t border-hairline">
+            <label className="flex items-start gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={useCredit}
+                onChange={(e) => setUseCredit(e.target.checked)}
+                className="mt-1 accent-maroon h-4 w-4"
+              />
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Wallet className="h-4 w-4 text-gold-deep" /> Use store credit
+                  </div>
+                  <span className="text-xs font-display text-maroon">{taka(STORE_CREDIT_AVAILABLE)}</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  {useCredit && creditApplied > 0
+                    ? `${taka(creditApplied)} applied · ${taka(STORE_CREDIT_AVAILABLE - creditApplied)} remaining after order`
+                    : "Earn credit on every order. Available to spend now."}
+                </div>
+              </div>
+            </label>
+          </div>
+
           <div className="mt-5 pt-5 border-t border-hairline space-y-1.5 text-sm">
             <Row label="Subtotal" value={taka(cartTotal)} />
+            {discount > 0 && (
+              <Row label={`Discount (${appliedCoupon?.code})`} value={`− ${taka(discount)}`} good />
+            )}
             <Row label="Delivery" value={delivery === 0 ? "Free" : taka(delivery)} good={delivery === 0} />
+            {creditApplied > 0 && (
+              <Row label="Store credit" value={`− ${taka(creditApplied)}`} good />
+            )}
           </div>
           <div className="mt-3 pt-3 border-t border-hairline flex items-baseline justify-between">
             <span className="font-display text-lg">Total</span>
-            <span className="font-display text-2xl text-maroon font-semibold">{taka(total)}</span>
+            <span className="font-display text-2xl text-maroon font-semibold transition-all">{taka(total)}</span>
           </div>
+          {(discount > 0 || creditApplied > 0) && (
+            <div className="mt-2 text-[11px] text-emerald-700 font-medium text-right animate-fade-up">
+              You saved {taka(discount + creditApplied)} ✦
+            </div>
+          )}
+
           <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> SSL Secure · Verified merchant
           </div>
