@@ -1,18 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { products } from "@/data/mock";
 import { ProductCard } from "@/components/ProductCard";
-import { SlidersHorizontal, Grid3x3, List, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, Grid3x3, List, ChevronDown, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
+type ShopSearch = { q?: string; category?: string; size?: string };
+
 export const Route = createFileRoute("/_shop/shop")({
+  validateSearch: (s: Record<string, unknown>): ShopSearch => ({
+    q: typeof s.q === "string" ? s.q : undefined,
+    category: typeof s.category === "string" ? s.category : undefined,
+    size: typeof s.size === "string" ? s.size : undefined,
+  }),
   head: () => ({ meta: [{ title: "Shop Handmade Kurti — Nongor" }, { name: "description", content: "Browse our handmade kurti collection." }] }),
   component: Shop,
 });
 
-const allSizes = ["S", "M", "L", "XL", "XXL"];
-const allColors = ["Maroon", "Ivory", "Gold", "Beige", "Rose", "Wine"];
-const allFabrics = ["Pure Cotton", "Soft Cotton", "Silk Blend", "Khadi Cotton", "Cotton Voile", "Handloom Cotton", "Silk Cotton"];
 const collections = ["Handmade Kurti", "New Arrival", "Best Seller", "Festive Collection"];
 
 function Shop() {
@@ -20,9 +24,12 @@ function Shop() {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [size, setSize] = useState<string[]>([]);
   const [color, setColor] = useState<string[]>([]);
-  const [fabric, setFabric] = useState<string[]>([]);
-  const [collection, setCollection] = useState<string[]>([]);
-  const [priceMax, setPriceMax] = useState(5000);
+function Shop() {
+  const search = Route.useSearch();
+  const [sort, setSort] = useState("newest");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [q, setQ] = useState(search.q ?? "");
+  const [size, setSize] = useState<string[]>(search.size ? [search.size] : []);
 
   const filtered = useMemo(() => {
     let r = products.filter((p) => {
