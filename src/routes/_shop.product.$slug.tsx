@@ -215,12 +215,25 @@ function Product() {
         </div>
       </div>
 
-      <section className="mt-20">
-        <h2 className="font-display text-3xl text-foreground">Pair it with</h2>
-        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {related.map((r) => <ProductCard key={r.id} p={r} />)}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="mt-20">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">You may also love</div>
+          <h2 className="mt-2 font-display text-3xl text-foreground">Pair it with</h2>
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {related.map((r) => <ProductCard key={r.id} p={r} />)}
+          </div>
+        </section>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="mt-20">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">Recently viewed</div>
+          <h2 className="mt-2 font-display text-3xl text-foreground">Picked up where you left off</h2>
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {recentlyViewed.map((r) => <ProductCard key={r.id} p={r} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
