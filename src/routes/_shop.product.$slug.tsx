@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { taka } from "@/lib/format";
 import { getStock, isOutOfStock, isLowStock } from "@/lib/stock";
-import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle } from "lucide-react";
+import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle, Share2, ZoomIn } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { useShop } from "@/store/shop";
@@ -10,6 +10,7 @@ import { useProductBySlug, usePublishedProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { pushRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 
 import type { Product as ProductType } from "@/data/mock";
 
