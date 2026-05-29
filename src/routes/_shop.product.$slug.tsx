@@ -33,8 +33,13 @@ function Product() {
   const [color, setColor] = useState(p.colors[0].name);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
   const price = p.discountPrice ?? p.price;
-  const related = allPublished.filter((x) => x.id !== p.id).slice(0, 4);
+  const related = allPublished.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4);
+
+  useEffect(() => { pushRecentlyViewed(p.id); }, [p.id]);
+  const recentIds = getRecentlyViewed().filter((id) => id !== p.id);
+  const recentlyViewed = allPublished.filter((x) => recentIds.includes(x.id)).slice(0, 4);
 
   const stock = getStock(p, size, color);
   const outOfStock = isOutOfStock(p, size, color);
