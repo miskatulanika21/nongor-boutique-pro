@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { taka } from "@/lib/format";
 import { getStock, isOutOfStock, isLowStock } from "@/lib/stock";
-import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle } from "lucide-react";
+import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle, Share2, ZoomIn } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { useShop } from "@/store/shop";
@@ -10,6 +10,7 @@ import { useProductBySlug, usePublishedProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { pushRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
 
 import type { Product as ProductType } from "@/data/mock";
 
@@ -32,8 +33,13 @@ function Product() {
   const [color, setColor] = useState(p.colors[0].name);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
   const price = p.discountPrice ?? p.price;
-  const related = allPublished.filter((x) => x.id !== p.id).slice(0, 4);
+  const related = allPublished.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4);
+
+  useEffect(() => { pushRecentlyViewed(p.id); }, [p.id]);
+  const recentIds = getRecentlyViewed().filter((id) => id !== p.id);
+  const recentlyViewed = allPublished.filter((x) => recentIds.includes(x.id)).slice(0, 4);
 
   const stock = getStock(p, size, color);
   const outOfStock = isOutOfStock(p, size, color);
@@ -46,6 +52,21 @@ function Product() {
   };
   const buyNow = () => { add(); nav({ to: "/checkout" }); };
 
+  const share = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: p.name, text: `${p.name} — Nongor`, url };
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share(shareData);
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      }
+    } catch {
+      // user dismissed share
+    }
+  };
+
   return (
     <div className="container-narrow py-6 md:py-12">
       <nav className="text-xs text-muted-foreground mb-6">
@@ -54,13 +75,28 @@ function Product() {
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
         <div>
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft">
-            <img src={p.images[activeImg]} alt={p.name} className="w-full h-full object-cover" />
+          <div
+            className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft group cursor-zoom-in"
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setZoomPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+            }}
+            onMouseLeave={() => setZoomPos(null)}
+          >
+            <img
+              src={p.images[activeImg]}
+              alt={p.name}
+              className="w-full h-full object-cover transition-transform duration-500 ease-soft"
+              style={zoomPos ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transform: "scale(1.8)" } : undefined}
+            />
+            <div className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full bg-ivory/85 backdrop-blur text-maroon shadow-soft opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              <ZoomIn className="h-4 w-4" />
+            </div>
           </div>
           {p.images.length > 1 && (
             <div className="mt-3 flex gap-3">
               {p.images.map((src, i) => (
-                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent"}`}>
+                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent hover:border-gold/60"}`}>
                   <img src={src} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -139,8 +175,11 @@ function Product() {
               <ShoppingBag className="h-4 w-4" /> {outOfStock ? "Out of Stock" : "Add to Bag"}
             </button>
             <button onClick={buyNow} disabled={outOfStock} className="flex-1 border-2 border-maroon text-maroon hover:bg-maroon hover:text-primary-foreground rounded-full py-4 font-semibold tracking-wide transition disabled:opacity-50 disabled:cursor-not-allowed">Buy Now</button>
-            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition">
+            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Add to wishlist">
               <Heart className={`h-5 w-5 ${shop.wishlist.includes(p.id) ? "fill-maroon text-maroon" : ""}`} />
+            </button>
+            <button onClick={share} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Share product">
+              <Share2 className="h-5 w-5" />
             </button>
           </div>
 
@@ -176,12 +215,25 @@ function Product() {
         </div>
       </div>
 
-      <section className="mt-20">
-        <h2 className="font-display text-3xl text-foreground">Pair it with</h2>
-        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
-          {related.map((r) => <ProductCard key={r.id} p={r} />)}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="mt-20">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">You may also love</div>
+          <h2 className="mt-2 font-display text-3xl text-foreground">Pair it with</h2>
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {related.map((r) => <ProductCard key={r.id} p={r} />)}
+          </div>
+        </section>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="mt-20">
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">Recently viewed</div>
+          <h2 className="mt-2 font-display text-3xl text-foreground">Picked up where you left off</h2>
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
+            {recentlyViewed.map((r) => <ProductCard key={r.id} p={r} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

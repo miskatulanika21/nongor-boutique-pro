@@ -9,8 +9,8 @@ import { SearchDialog, useSearchShortcut } from "./SearchDialog";
 const nav = [
   { to: "/", label: "Home" },
   { to: "/shop", label: "Shop" },
-  { to: "/shop", label: "Kurti" },
-  { to: "/shop", label: "Festive" },
+  { to: "/about", label: "About" },
+  { to: "/size-guide", label: "Size Guide" },
   { to: "/track-order", label: "Track Order" },
 ];
 
