@@ -52,6 +52,21 @@ function Product() {
   };
   const buyNow = () => { add(); nav({ to: "/checkout" }); };
 
+  const share = async () => {
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    const shareData = { title: p.name, text: `${p.name} — Nongor`, url };
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share(shareData);
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      }
+    } catch {
+      // user dismissed share
+    }
+  };
+
   return (
     <div className="container-narrow py-6 md:py-12">
       <nav className="text-xs text-muted-foreground mb-6">
@@ -60,13 +75,28 @@ function Product() {
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
         <div>
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft">
-            <img src={p.images[activeImg]} alt={p.name} className="w-full h-full object-cover" />
+          <div
+            className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft group cursor-zoom-in"
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              setZoomPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
+            }}
+            onMouseLeave={() => setZoomPos(null)}
+          >
+            <img
+              src={p.images[activeImg]}
+              alt={p.name}
+              className="w-full h-full object-cover transition-transform duration-500 ease-soft"
+              style={zoomPos ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transform: "scale(1.8)" } : undefined}
+            />
+            <div className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full bg-ivory/85 backdrop-blur text-maroon shadow-soft opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              <ZoomIn className="h-4 w-4" />
+            </div>
           </div>
           {p.images.length > 1 && (
             <div className="mt-3 flex gap-3">
               {p.images.map((src, i) => (
-                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent"}`}>
+                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent hover:border-gold/60"}`}>
                   <img src={src} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
