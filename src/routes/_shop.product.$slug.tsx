@@ -175,8 +175,11 @@ function Product() {
               <ShoppingBag className="h-4 w-4" /> {outOfStock ? "Out of Stock" : "Add to Bag"}
             </button>
             <button onClick={buyNow} disabled={outOfStock} className="flex-1 border-2 border-maroon text-maroon hover:bg-maroon hover:text-primary-foreground rounded-full py-4 font-semibold tracking-wide transition disabled:opacity-50 disabled:cursor-not-allowed">Buy Now</button>
-            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition">
+            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Add to wishlist">
               <Heart className={`h-5 w-5 ${shop.wishlist.includes(p.id) ? "fill-maroon text-maroon" : ""}`} />
+            </button>
+            <button onClick={share} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Share product">
+              <Share2 className="h-5 w-5" />
             </button>
           </div>
 
