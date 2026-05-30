@@ -11,6 +11,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { pushRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
+import { ProductReviews } from "@/components/ProductReviews";
 
 import type { Product as ProductType } from "@/data/mock";
 
@@ -214,6 +215,11 @@ function Product() {
           </Tabs>
         </div>
       </div>
+
+      <ProductReviews productId={p.id} rating={p.rating} reviewCount={p.reviewCount} images={p.images} />
+
+
+
 
       {related.length > 0 && (
         <section className="mt-20">
