@@ -213,9 +213,11 @@ function Product() {
               This piece was carefully hand-stitched by artisans in Bangladesh. Each kurti is crafted over days, not hours. Minor variation in stitch pattern is the signature of true handwork.
             </TabsContent>
           </Tabs>
+        </div>
       </div>
 
       <ProductReviews productId={p.id} rating={p.rating} reviewCount={p.reviewCount} images={p.images} />
+
 
 
 
