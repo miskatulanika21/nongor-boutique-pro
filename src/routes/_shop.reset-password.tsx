@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/store/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
@@ -49,7 +49,7 @@ function ResetPasswordPage() {
     setLoading(true);
     const res = await updatePassword(password);
     setLoading(false);
-    if (!res.ok) return setError(res.error ?? "Could not update password.");
+    if (!res.success) return setError(res.error ?? "Could not update password.");
     setDone(true);
     toast.success("Password updated");
     setTimeout(() => navigate({ to: "/account" }), 1500);

@@ -30,9 +30,10 @@ export type AuthState = {
 
   /* ── Actions ── */
   signIn: (email: string, password: string) => Promise<{ success: boolean; role: UserRole | null; error?: string }>;
-  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
 };
 
 /* ──────────────────────────── Helpers ──────────────────────────── */
@@ -212,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     fullName: string,
     phone: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> => {
     if (!isSupabaseConfigured) {
       // Mock mode: just create a customer profile
       const mockCustomer: UserProfile = {
@@ -224,7 +225,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
       setProfile(mockCustomer);
       saveMockAuth(mockCustomer);
-      return { success: true };
+      return { success: true, needsConfirmation: false };
     }
 
     const { data, error } = await supabase.auth.signUp({
@@ -258,7 +259,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       saveMockAuth(p);
     }
 
-    return { success: true };
+    const needsConfirmation = !data.session;
+    return { success: true, needsConfirmation };
   }, []);
 
   /* ── Sign Out ── */
@@ -287,6 +289,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, []);
 
+  /* ── Update Password ── */
+  const updatePassword = useCallback(async (password: string): Promise<{ success: boolean; error?: string }> => {
+    if (!isSupabaseConfigured) {
+      return { success: true }; // Mock mode: always succeed
+    }
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  }, []);
+
   /* ── Derived state ── */
   const role = profile?.role ?? null;
   const isAuthenticated = profile !== null;
@@ -305,6 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signOut,
         resetPassword,
+        updatePassword,
       }}
     >
       {children}

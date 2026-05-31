@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "@/store/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, Loader2, User2, Phone, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
@@ -8,9 +8,9 @@ import { Mail, Lock, Eye, EyeOff, Loader2, User2, Phone, ShieldCheck, ArrowLeft,
 type Mode = "signin" | "signup" | "forgot";
 
 export const Route = createFileRoute("/_shop/login")({
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: Mode } => ({
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
-    mode: (search.mode === "signup" || search.mode === "forgot" ? search.mode : "signin") as Mode,
+    mode: (search.mode === "signup" || search.mode === "forgot" ? search.mode : undefined) as Mode | undefined,
   }),
   head: () => ({
     meta: [
@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_shop/login")({
 });
 
 function LoginPage() {
-  const { signIn, signUp, requestPasswordReset, isAuthenticated, isAdmin, loading } = useAuth();
+  const { signIn, signUp, resetPassword: requestPasswordReset, isAuthenticated, isAdmin, isLoading: loading } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/_shop/login" });
   const [mode, setMode] = useState<Mode>(search.mode ?? "signin");
@@ -181,7 +181,7 @@ function SignInForm({ signIn, onForgot }: { signIn: ReturnType<typeof useAuth>["
     setLoading(true);
     const res = await signIn(email, password);
     setLoading(false);
-    if (!res.ok) {
+    if (!res.success) {
       setError(humanise(res.error));
       return;
     }
@@ -222,9 +222,9 @@ function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>
     if (!validBdPhone(phone)) return setError("Enter a valid Bangladesh phone number (e.g. 01XXXXXXXXX).");
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     setLoading(true);
-    const res = await signUp({ email, password, fullName: fullName.trim(), phone: normalizeBdPhone(phone) });
+    const res = await signUp(email, password, fullName.trim(), normalizeBdPhone(phone));
     setLoading(false);
-    if (!res.ok) return setError(humanise(res.error));
+    if (!res.success) return setError(humanise(res.error));
     if (res.needsConfirmation) {
       setSuccess("Check your email to confirm your account, then sign in.");
       toast.success("Account created — confirmation email sent");
@@ -262,7 +262,7 @@ function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>
   );
 }
 
-function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["requestPasswordReset"]; onBack: () => void }) {
+function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["resetPassword"]; onBack: () => void }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -274,7 +274,7 @@ function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["
     setLoading(true);
     const res = await request(email);
     setLoading(false);
-    if (!res.ok) return setError(humanise(res.error));
+    if (!res.success) return setError(humanise(res.error));
     setSent(true);
     toast.success("Reset link sent — check your inbox");
   };
