@@ -25,6 +25,14 @@ function Product() {
   const { product: p, loading } = useProductBySlug(slug);
   const { products: allPublished } = usePublishedProducts();
 
+  useEffect(() => {
+    if (p) {
+      document.title = `${p.name} — Nongor`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute("content", p.description);
+    }
+  }, [p]);
+
   if (loading) return (
     <div className="container-narrow py-6 md:py-12">
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 animate-pulse">
@@ -42,16 +50,12 @@ function Product() {
     </div>
   );
 
-  useEffect(() => {
-    if (p) {
-      document.title = `${p.name} — Nongor`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) metaDesc.setAttribute("content", p.description);
-    }
-  }, [p]);
-
   if (!p) return <div className="container-narrow py-20 text-center"><h1 className="font-display text-3xl">Product not found</h1></div>;
 
+  return <ProductDetail p={p} allPublished={allPublished} />;
+}
+
+function ProductDetail({ p, allPublished }: { p: ProductType; allPublished: ProductType[] }) {
   const shop = useShop();
   const nav = useNavigate();
   const [size, setSize] = useState(p.sizes[1] ?? p.sizes[0]);

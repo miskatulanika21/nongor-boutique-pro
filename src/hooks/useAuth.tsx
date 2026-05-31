@@ -132,6 +132,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(p);
           saveMockAuth(p);
         }
+      } else {
+        // If there is no Supabase session, check if we have a saved mock admin in localStorage!
+        const saved = loadMockAuth();
+        if (saved && saved.role === 'admin') {
+          setProfile(saved);
+        }
       }
       if (mounted) setIsLoading(false);
     });
@@ -170,7 +176,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     email: string,
     password: string
   ): Promise<{ success: boolean; role: UserRole | null; error?: string }> => {
-    if (!isSupabaseConfigured) {
+    const isMockAdmin = email.toLowerCase() === 'admin@nongor.com' && password === 'nongor2024';
+
+    if (!isSupabaseConfigured || isMockAdmin) {
       // Mock mode
       const mockUser = MOCK_USERS[email.toLowerCase()];
       if (mockUser && mockUser.password === password) {

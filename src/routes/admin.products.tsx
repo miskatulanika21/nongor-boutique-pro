@@ -94,6 +94,7 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
   const [featured, setFeatured] = useState(initial?.featured ?? false);
   const [images, setImages] = useState<string[]>(initial?.images ?? []);
   const [uploading, setUploading] = useState(false);
+  const [status, setStatus] = useState<"Published" | "Draft" | "Archived">(initial?.status ?? "Published");
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
@@ -143,7 +144,7 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
       isNew,
       isBestSeller: isBest,
       featured,
-      status: "Published" as const,
+      status,
     });
   };
 
@@ -157,6 +158,18 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
       <div><label className="text-xs text-muted-foreground">Occasion</label><select value={occasion} onChange={(e) => setOccasion(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary text-sm"><option>Everyday</option><option>Festive</option><option>Formal</option></select></div>
       <div><label className="text-xs text-muted-foreground">Fabric</label><input value={fabric} onChange={(e) => setFabric(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary text-sm" /></div>
       <div><label className="text-xs text-muted-foreground">Stock</label><input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary text-sm" /></div>
+      <div>
+        <label className="text-xs text-muted-foreground">Status</label>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as any)}
+          className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary text-sm"
+        >
+          <option value="Published">Published</option>
+          <option value="Draft">Draft</option>
+          <option value="Archived">Archived</option>
+        </select>
+      </div>
       <div className="md:col-span-2"><label className="text-xs text-muted-foreground">Description</label><textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary" /></div>
       <div className="md:col-span-2"><label className="text-xs text-muted-foreground">Sizes (comma separated)</label><input value={sizes} onChange={(e) => setSizes(e.target.value)} placeholder="S, M, L, XL" className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary" /></div>
       

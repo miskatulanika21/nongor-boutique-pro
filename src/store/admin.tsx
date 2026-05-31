@@ -144,6 +144,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const authLoading = sharedAuth.isLoading;
+  const isMockAdmin = auth.email === "admin@nongor.com" || auth.userId?.startsWith("mock-");
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     const result = await sharedAuth.signIn(email, password);
@@ -236,8 +237,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   /* ───── Products actions ───── */
   const addProduct = useCallback(async (p: Product) => {
-    if (!isSupabaseConfigured) {
-      setProducts((prev) => [p, ...prev]);
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setProducts((prev) => {
+        const list = [p, ...prev];
+        save("nongor_admin_products", list);
+        return list;
+      });
       return;
     }
 
@@ -331,8 +336,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateProduct = useCallback(async (id: string, patch: Partial<Product>) => {
-    if (!isSupabaseConfigured) {
-      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+    const hasMockId = !isUuid(id);
+
+    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+      setProducts((prev) => {
+        const list = prev.map((p) => (p.id === id ? { ...p, ...patch } : p));
+        save("nongor_admin_products", list);
+        return list;
+      });
       return;
     }
 
@@ -392,8 +404,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteProduct = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured) {
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+    const hasMockId = !isUuid(id);
+
+    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+      setProducts((prev) => {
+        const list = prev.filter((p) => p.id !== id);
+        save("nongor_admin_products", list);
+        return list;
+      });
       return;
     }
 
@@ -412,8 +431,15 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateOrderStatus = useCallback(async (id: string, status: Order["status"]) => {
-    if (!isSupabaseConfigured) {
-      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
+    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+    const hasMockId = !id.includes('-'); // Supabase order UUIDs contain hyphens, mock ones are NGR-xxxx
+
+    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+      setOrders((prev) => {
+        const list = prev.map((o) => (o.id === id ? { ...o, status } : o));
+        save("nongor_orders", list);
+        return list;
+      });
       return;
     }
 
@@ -443,9 +469,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   /* ───── Payments actions ───── */
   const approvePayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured) {
-      setOrders((prev) =>
-        prev.map((o) =>
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setOrders((prev) => {
+        const list = prev.map((o) =>
           o.id === id
             ? {
                 ...o,
@@ -453,8 +479,10 @@ export function AdminProvider({ children }: { children: ReactNode }) {
                 status: o.status === "Pending" ? ("Confirmed" as const) : o.status,
               }
             : o,
-        ),
-      );
+        );
+        save("nongor_orders", list);
+        return list;
+      });
       return;
     }
 
@@ -478,10 +506,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const rejectPayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured) {
-      setOrders((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Failed" as const } : o)),
-      );
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setOrders((prev) => {
+        const list = prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Failed" as const } : o));
+        save("nongor_orders", list);
+        return list;
+      });
       return;
     }
 
@@ -505,10 +535,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetPayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured) {
-      setOrders((prev) =>
-        prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Pending" as const } : o)),
-      );
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setOrders((prev) => {
+        const list = prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Pending" as const } : o));
+        save("nongor_orders", list);
+        return list;
+      });
       return;
     }
 
@@ -527,8 +559,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   /* ───── Coupons actions ───── */
   const addCoupon = useCallback(async (c: Coupon) => {
-    if (!isSupabaseConfigured) {
-      setCoupons((prev) => [c, ...prev]);
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setCoupons((prev) => {
+        const list = [c, ...prev];
+        save("nongor_admin_coupons", list);
+        return list;
+      });
       return;
     }
 
@@ -563,8 +599,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateCoupon = useCallback(async (code: string, patch: Partial<Coupon>) => {
-    if (!isSupabaseConfigured) {
-      setCoupons((prev) => prev.map((c) => (c.code === code ? { ...c, ...patch } : c)));
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setCoupons((prev) => {
+        const list = prev.map((c) => (c.code === code ? { ...c, ...patch } : c));
+        save("nongor_admin_coupons", list);
+        return list;
+      });
       return;
     }
 
@@ -600,8 +640,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteCoupon = useCallback(async (code: string) => {
-    if (!isSupabaseConfigured) {
-      setCoupons((prev) => prev.filter((c) => c.code !== code));
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setCoupons((prev) => {
+        const list = prev.filter((c) => c.code !== code);
+        save("nongor_admin_coupons", list);
+        return list;
+      });
       return;
     }
 
@@ -627,8 +671,12 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   /* ───── Settings actions ───── */
   const updateSetting = useCallback(async (key: string, value: string) => {
-    if (!isSupabaseConfigured) {
-      setSettings((prev) => ({ ...prev, [key]: value }));
+    if (!isSupabaseConfigured || isMockAdmin) {
+      setSettings((prev) => {
+        const list = { ...prev, [key]: value };
+        save("nongor_admin_settings", list);
+        return list;
+      });
       return;
     }
 

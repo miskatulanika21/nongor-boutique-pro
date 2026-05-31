@@ -4,6 +4,12 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { DbOrder, OrderItem } from '@/lib/database.types';
 import type { Json } from '@/lib/database.types';
+import { products as mockProducts, orders as mockOrders } from '@/data/mock';
+
+// A helper helper to normalize phone numbers for comparison
+function normalizePhone(p: string): string {
+  return p.replace(/[-+\s()]/g, '');
+}
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -46,8 +52,41 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
   orderId?: string;
   error?: string;
 }> {
-  if (!isSupabaseConfigured) {
-    return { success: false, error: 'Supabase not configured' };
+  const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const hasMockIds = payload.items.some(i => !isUuid(i.productId));
+
+  if (!isSupabaseConfigured || hasMockIds) {
+    // Generate a random order number like NGR-1043
+    const orderNumber = `NGR-${Math.floor(1043 + Math.random() * 9000)}`;
+    const orderId = `mock-order-${Math.floor(100000 + Math.random() * 900000)}`;
+    
+    // Save order to localStorage so it can be queried/tracked later
+    try {
+      if (typeof window !== 'undefined') {
+        const existing = localStorage.getItem('nongor_mock_orders');
+        const list = existing ? JSON.parse(existing) : [];
+        list.push({
+          id: orderId,
+          order_number: orderNumber,
+          customer_name: payload.customerName,
+          customer_phone: payload.customerPhone,
+          order_status: 'pending',
+          payment_method: payload.paymentMethod.toLowerCase(),
+          payment_status: 'pending',
+          total_amount: payload.totalAmount,
+          created_at: new Date().toISOString(),
+        });
+        localStorage.setItem('nongor_mock_orders', JSON.stringify(list));
+      }
+    } catch (e) {
+      console.warn('Failed to save mock order to localStorage:', e);
+    }
+
+    return {
+      success: true,
+      orderNumber,
+      orderId,
+    };
   }
 
   const items: Json = payload.items.map(i => ({
@@ -96,6 +135,45 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<{
   found: boolean;
   order?: Record<string, unknown>;
 }> {
+  const normPhoneInput = normalizePhone(phone);
+
+  // Check custom mock orders in localStorage
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('nongor_mock_orders');
+      const list = existing ? JSON.parse(existing) : [];
+      const foundLocal = list.find((o: any) => o.order_number === orderNumber && normalizePhone(o.customer_phone) === normPhoneInput);
+      if (foundLocal) {
+        return { found: true, order: foundLocal };
+      }
+    } catch (e) {
+      console.warn('Failed to read mock orders from localStorage:', e);
+    }
+  }
+
+  // Fallback to default mock list in mock.ts
+  const foundMock = mockOrders.find(
+    o => o.id === orderNumber && normalizePhone(o.phone) === normPhoneInput
+  );
+  if (foundMock) {
+    return {
+      found: true,
+      order: {
+        id: foundMock.id,
+        order_number: foundMock.id,
+        customer_name: foundMock.customer,
+        customer_phone: foundMock.phone,
+        order_status: foundMock.status.toLowerCase(),
+        payment_method: foundMock.payment.toLowerCase(),
+        payment_status: foundMock.paymentStatus.toLowerCase(),
+        total_amount: foundMock.total,
+        created_at: new Date().toISOString(),
+        courier_name: foundMock.courier,
+        tracking_id: foundMock.trackingId,
+      }
+    };
+  }
+
   if (!isSupabaseConfigured) return { found: false };
 
   const { data, error } = await supabase.rpc('track_order', {
