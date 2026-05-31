@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Package, MapPin, Heart, RotateCcw, LogOut, Clock } from "lucide-react";
+import { User, Package, MapPin, Heart, RotateCcw, LogOut, Clock, ShieldCheck, Loader2 } from "lucide-react";
 import { useAdmin } from "@/store/admin";
+import { useAuth } from "@/store/auth";
 import { products } from "@/data/mock";
 import { taka } from "@/lib/format";
 import { toast } from "sonner";
@@ -13,36 +15,59 @@ export const Route = createFileRoute("/_shop/account")({
 
 function Account() {
   const { orders } = useAdmin();
+  const { user, loading, isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
 
-  // Try to find the most recent order to extract the current customer's profile info dynamically
-  // If no order exists, fallback to a default mock profile
-  const recentOrder = orders[0]; // since new orders are prepended
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate({ to: "/login", search: { redirect: "/account" } as never, replace: true });
+    }
+  }, [loading, isAuthenticated, navigate]);
 
-  const customerName = recentOrder ? recentOrder.customer : "Tasnim Rahman";
-  const customerPhone = recentOrder ? recentOrder.phone : "01711-223344";
-  const customerEmail = "hello@nongor.com.bd"; // standard fallback or custom info
+  if (loading || !isAuthenticated || !user) {
+    return (
+      <div className="container-narrow py-24 grid place-items-center">
+        <Loader2 className="h-6 w-6 animate-spin text-maroon" />
+      </div>
+    );
+  }
 
-  // Filter orders matching this customer's name or phone
-  const customerOrders = orders.filter(
-    (o) =>
-      o.phone.replace(/[-\s]/g, "") === customerPhone.replace(/[-\s]/g, "") ||
-      o.customer.toLowerCase().trim() === customerName.toLowerCase().trim()
-  );
+  const customerName = user.fullName ?? user.email.split("@")[0];
+  const customerPhone = user.phone ?? "—";
+  const customerEmail = user.email;
 
-  const handleSignOut = () => {
-    toast.info("Mock Sign-out success!");
+  const customerOrders = orders.filter((o) => {
+    if (user.phone) {
+      const a = o.phone.replace(/\D/g, "");
+      const b = user.phone.replace(/\D/g, "");
+      if (a && b && (a.endsWith(b.slice(-9)) || b.endsWith(a.slice(-9)))) return true;
+    }
+    return o.customer.toLowerCase().trim() === customerName.toLowerCase().trim();
+  });
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Signed out");
+    navigate({ to: "/" });
   };
 
   return (
     <div className="container-narrow py-10">
-      <div className="flex items-center gap-4">
-        <div className="h-16 w-16 rounded-full bg-cream grid place-items-center text-2xl text-maroon font-display font-semibold shadow-soft">
-          {customerName.charAt(0).toUpperCase()}
+      <div className="flex flex-wrap items-center gap-4 justify-between">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-full bg-cream grid place-items-center text-2xl text-maroon font-display font-semibold shadow-soft">
+            {customerName.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <h1 className="font-display text-3xl font-semibold">Welcome back, {customerName.split(" ")[0]}</h1>
+            <p className="text-sm text-muted-foreground">{customerEmail} · {customerPhone}</p>
+          </div>
         </div>
-        <div>
-          <h1 className="font-display text-3xl font-semibold">Welcome back, {customerName.split(" ")[0]}</h1>
-          <p className="text-sm text-muted-foreground">{customerEmail} · {customerPhone}</p>
-        </div>
+        {user.role === "admin" && (
+          <Link to="/admin/dashboard" className="inline-flex items-center gap-2 rounded-full bg-charcoal text-primary-foreground px-4 py-2 text-xs font-semibold tracking-wide hover:bg-charcoal/85 transition">
+            <ShieldCheck className="h-3.5 w-3.5 text-gold" /> Open Admin Panel
+          </Link>
+        )}
       </div>
 
       <Tabs defaultValue="orders" className="mt-8">
@@ -61,7 +86,7 @@ function Account() {
               ["Full name", customerName],
               ["Phone number", customerPhone],
               ["Email address", customerEmail],
-              ["Date of Birth", "1996-08-12"],
+              ["Account type", user.role === "admin" ? "Admin" : "Customer"],
             ].map(([l, v]) => (
               <div key={l}>
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">{l}</div>
@@ -69,7 +94,7 @@ function Account() {
               </div>
             ))}
           </div>
-          <button onClick={() => toast.info("Profile editing is disabled in UI prototype")} className="mt-6 px-5 py-2 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
+          <button onClick={() => toast.info("Profile editing is coming soon")} className="mt-6 px-5 py-2 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
             Edit Profile
           </button>
         </TabsContent>
@@ -92,7 +117,7 @@ function Account() {
           ))}
           {customerOrders.length === 0 && (
             <div className="p-8 text-center bg-card rounded-2xl text-muted-foreground border border-border/60">
-              No orders found for this profile yet.
+              No orders found yet. <Link to="/shop" className="text-maroon font-semibold hover:underline">Start shopping →</Link>
             </div>
           )}
         </TabsContent>
@@ -103,8 +128,8 @@ function Account() {
               <div className="font-semibold text-sm">{i === 1 ? "Home Delivery Address" : "Office Delivery Address"}</div>
               <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">House 12, Road 7, Dhanmondi, Dhaka</div>
               <div className="mt-3 flex gap-3 text-xs font-semibold">
-                <button onClick={() => toast.info("Address edit is disabled")} className="text-maroon hover:underline cursor-pointer">Edit</button>
-                <button onClick={() => toast.info("Address delete is disabled")} className="text-muted-foreground hover:text-destructive cursor-pointer">Delete</button>
+                <button onClick={() => toast.info("Address editing coming soon")} className="text-maroon hover:underline cursor-pointer">Edit</button>
+                <button onClick={() => toast.info("Address delete coming soon")} className="text-muted-foreground hover:text-destructive cursor-pointer">Delete</button>
               </div>
             </div>
           ))}
@@ -135,6 +160,7 @@ function Account() {
 
         <TabsContent value="return" className="bg-card rounded-2xl p-6 mt-4 border border-border/60">
           <h3 className="font-display text-lg font-semibold">Request a return / exchange</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Read our <Link to="/return-policy" className="text-maroon underline">Return Policy</Link> before submitting.</p>
           <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
             <input placeholder="Order ID (e.g. NGR-1043)" className="px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none" />
             <select className="px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none cursor-pointer">
@@ -144,7 +170,7 @@ function Account() {
             </select>
             <textarea placeholder="Additional details or comments" rows={4} className="md:col-span-2 px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none" />
           </div>
-          <button onClick={() => toast.success("Exchange request submitted to review!")} className="mt-4 px-5 py-2.5 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
+          <button onClick={() => toast.success("Exchange request submitted for review")} className="mt-4 px-5 py-2.5 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
             Submit Request
           </button>
         </TabsContent>
