@@ -104,12 +104,14 @@ function AdminLogin() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-[11px] text-muted-foreground">
-            <div className="p-3 rounded-lg bg-cream/60 border border-gold/20">
-              <div className="font-semibold text-foreground/70">Demo credentials</div>
-              <div className="mt-1 font-mono">admin@nongor.com · nongor2024</div>
+          {import.meta.env.DEV && (
+            <div className="mt-6 text-center text-[11px] text-muted-foreground">
+              <div className="p-3 rounded-lg bg-cream/60 border border-gold/20">
+                <div className="font-semibold text-foreground/70">Demo credentials (dev only)</div>
+                <div className="mt-1 font-mono">admin@nongor.com · nongor2024</div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <div className="mt-4 text-center text-[11px] text-primary-foreground/40">
           <span className="font-bengali">নোঙর</span> · Secure admin authentication
