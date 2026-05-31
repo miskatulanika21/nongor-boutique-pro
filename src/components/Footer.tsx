@@ -45,9 +45,9 @@ export function Footer() {
           <h4 className="text-[11px] uppercase tracking-[0.22em] text-gold mb-4">Help</h4>
           <ul className="space-y-2.5 text-sm text-primary-foreground/75">
             <li><Link to="/track-order" className="hover:text-gold transition">Track Order</Link></li>
-            <li className="hover:text-gold transition cursor-pointer">Return & Exchange</li>
-            <li className="hover:text-gold transition cursor-pointer">Size Guide</li>
-            <li className="hover:text-gold transition cursor-pointer">Contact Us</li>
+            <li><Link to="/size-guide" className="hover:text-gold transition">Size Guide</Link></li>
+            <li><Link to="/return-policy" className="hover:text-gold transition">Return & Exchange</Link></li>
+            <li><Link to="/about" className="hover:text-gold transition">Contact Us</Link></li>
           </ul>
         </div>
 
@@ -57,7 +57,6 @@ export function Footer() {
             <li className="flex items-start gap-2.5"><MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" /><span>Dhanmondi 27, Dhaka, Bangladesh</span></li>
             <li className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-gold" /><span>+880 1700-000000</span></li>
             <li className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-gold" /><span>hello@nongor.com.bd</span></li>
-
           </ul>
         </div>
       </div>
@@ -69,8 +68,9 @@ export function Footer() {
             Handmade with <Heart className="h-3 w-3 fill-gold text-gold" /> in Bangladesh
           </div>
           <div className="flex gap-4">
-            <span className="hover:text-gold transition cursor-pointer">Privacy</span>
-            <span className="hover:text-gold transition cursor-pointer">Terms</span>
+            <Link to="/privacy-policy" className="hover:text-gold transition">Privacy</Link>
+            <Link to="/return-policy" className="hover:text-gold transition">Returns</Link>
+            <Link to="/terms" className="hover:text-gold transition">Terms</Link>
           </div>
         </div>
       </div>
