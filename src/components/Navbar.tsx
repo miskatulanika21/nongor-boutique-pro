@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Search, Heart, ShoppingBag, User, Menu, X, Home, Store, Sparkles } from "lucide-react";
+import { Search, Heart, ShoppingBag, User, Menu, X, Home, Store, Sparkles, LogIn } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { useShop } from "@/store/shop";
+import { useAuth } from "@/store/auth";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchDialog, useSearchShortcut } from "./SearchDialog";
 
@@ -23,6 +24,7 @@ const marquee = [
 
 export function Navbar() {
   const { cartCount, wishlist } = useShop();
+  const { isAuthenticated, isAdmin, user } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -82,9 +84,17 @@ export function Navbar() {
                       {n.label}
                     </Link>
                   ))}
-                  <Link to="/account" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60">My Account</Link>
+                  {isAuthenticated ? (
+                    <Link to="/account" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60">My Account</Link>
+                  ) : (
+                    <Link to="/login" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-maroon font-semibold border-b border-hairline/60 inline-flex items-center gap-2"><LogIn className="h-4 w-4" /> Sign in / Register</Link>
+                  )}
                   <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60">Wishlist</Link>
-                  <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 mt-4 text-xs uppercase tracking-[0.25em] text-gold-deep">Admin Panel →</Link>
+                  <Link to="/privacy-policy" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-sm text-foreground/70 border-b border-hairline/60">Privacy Policy</Link>
+                  <Link to="/return-policy" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-sm text-foreground/70 border-b border-hairline/60">Return Policy</Link>
+                  {isAdmin && (
+                    <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 mt-4 text-xs uppercase tracking-[0.25em] text-gold-deep">Admin Panel →</Link>
+                  )}
                 </nav>
                 <div className="absolute bottom-6 left-6 right-6 text-[11px] text-muted-foreground">
                   <div className="font-bengali text-maroon text-sm">নোঙর</div>
@@ -138,8 +148,14 @@ export function Navbar() {
                 </span>
               )}
             </Link>
-            <Link to="/account" className="p-2.5 rounded-full hover:bg-cream transition hidden sm:inline-flex" aria-label="Account">
+            <Link
+              to={isAuthenticated ? "/account" : "/login"}
+              className="p-2.5 rounded-full hover:bg-cream transition hidden sm:inline-flex relative"
+              aria-label={isAuthenticated ? "Account" : "Sign in"}
+              title={isAuthenticated ? `Signed in as ${user?.fullName ?? user?.email}` : "Sign in"}
+            >
               <User className="h-5 w-5" />
+              {isAuthenticated && <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-green-600" />}
             </Link>
           </div>
         </div>
