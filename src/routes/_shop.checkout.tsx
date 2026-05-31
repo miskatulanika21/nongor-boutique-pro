@@ -80,12 +80,6 @@ function Checkout() {
   // ── Submit state ──
   const [submitting, setSubmitting] = useState(false);
 
-  // ── Redirect if cart is empty ──
-  if (cart.length === 0 && !submitting) {
-    nav({ to: "/cart" });
-    return null;
-  }
-
   // ── Computed prices ──
   const delivery = useMemo(() => {
     if (appliedCoupon?.isFreeDelivery) return 0;
@@ -140,8 +134,14 @@ function Checkout() {
       }
       return true;
     },
-    [name, phone, email, district, upazila, address, deliveryNote, payment, trxId]
+    [name, phone, email, district, upazila, address, deliveryNote, payment, trxId],
   );
+
+  // ── Redirect if cart is empty ──
+  if (cart.length === 0 && !submitting) {
+    nav({ to: "/cart" });
+    return null;
+  }
 
   const goNext = () => {
     if (validateStep(step)) setStep(step + 1);
@@ -165,7 +165,12 @@ function Checkout() {
       const coupon = result.coupon;
       setAppliedCoupon({
         code,
-        type: coupon?.type === "percent" ? "Percentage" : coupon?.type === "flat" ? "Flat" : "Free Delivery",
+        type:
+          coupon?.type === "percent"
+            ? "Percentage"
+            : coupon?.type === "flat"
+              ? "Flat"
+              : "Free Delivery",
         value: coupon?.value ?? 0,
         discount: result.discount ?? 0,
         isFreeDelivery: coupon?.type === "free_delivery",
@@ -277,11 +282,23 @@ function Checkout() {
                         : "bg-secondary text-muted-foreground"
                   }`}
                 >
-                  {done ? <Check className="h-4 w-4" strokeWidth={3} /> : <Icon className="h-4 w-4" />}
+                  {done ? (
+                    <Check className="h-4 w-4" strokeWidth={3} />
+                  ) : (
+                    <Icon className="h-4 w-4" />
+                  )}
                 </div>
                 <div className="hidden sm:block">
-                  <div className={`text-[10px] uppercase tracking-[0.18em] ${active ? "text-maroon" : "text-muted-foreground"}`}>Step {i + 1}</div>
-                  <div className={`text-sm font-medium ${active ? "text-foreground" : done ? "text-foreground/70" : "text-muted-foreground"}`}>{s.label}</div>
+                  <div
+                    className={`text-[10px] uppercase tracking-[0.18em] ${active ? "text-maroon" : "text-muted-foreground"}`}
+                  >
+                    Step {i + 1}
+                  </div>
+                  <div
+                    className={`text-sm font-medium ${active ? "text-foreground" : done ? "text-foreground/70" : "text-muted-foreground"}`}
+                  >
+                    {s.label}
+                  </div>
                 </div>
                 {i < steps.length - 1 && (
                   <div className={`w-6 md:w-12 h-px ${done ? "bg-gold" : "bg-hairline"}`} />
@@ -293,30 +310,86 @@ function Checkout() {
       </div>
 
       <div className="mt-8 grid lg:grid-cols-[1fr_400px] gap-6 lg:gap-8">
-        <div className="bg-card rounded-2xl p-5 md:p-8 shadow-soft border border-hairline animate-fade-up" key={step}>
+        <div
+          className="bg-card rounded-2xl p-5 md:p-8 shadow-soft border border-hairline animate-fade-up"
+          key={step}
+        >
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl tracking-tight">Customer Information</h2>
-              <p className="text-sm text-muted-foreground -mt-2">We'll use this to confirm your order.</p>
-              <Field label="Full name" placeholder="Tasnim Rahman" value={name} onChange={setName} error={errors.name} required />
-              <Field label="Phone number" placeholder="01XXXXXXXXX" value={phone} onChange={setPhone} error={errors.phone} required />
-              <Field label="Email (optional)" placeholder="you@email.com" value={email} onChange={setEmail} error={errors.email} />
+              <p className="text-sm text-muted-foreground -mt-2">
+                We'll use this to confirm your order.
+              </p>
+              <Field
+                label="Full name"
+                placeholder="Tasnim Rahman"
+                value={name}
+                onChange={setName}
+                error={errors.name}
+                required
+              />
+              <Field
+                label="Phone number"
+                placeholder="01XXXXXXXXX"
+                value={phone}
+                onChange={setPhone}
+                error={errors.phone}
+                required
+              />
+              <Field
+                label="Email (optional)"
+                placeholder="you@email.com"
+                value={email}
+                onChange={setEmail}
+                error={errors.email}
+              />
             </div>
           )}
           {step === 1 && (
             <div className="space-y-4">
               <h2 className="font-display text-2xl tracking-tight">Delivery Address</h2>
-              <p className="text-sm text-muted-foreground -mt-2">Where should we deliver your kurti?</p>
+              <p className="text-sm text-muted-foreground -mt-2">
+                Where should we deliver your kurti?
+              </p>
               <div className="grid md:grid-cols-2 gap-4">
-                <Select label="District" value={district} onChange={(v) => { setDistrict(v); setUpazila(""); }} options={districts} error={errors.district} />
-                <Select label="Upazila / Area" value={upazila} onChange={setUpazila} options={upazilas[district] ?? ["Central"]} error={errors.upazila} />
+                <Select
+                  label="District"
+                  value={district}
+                  onChange={(v) => {
+                    setDistrict(v);
+                    setUpazila("");
+                  }}
+                  options={districts}
+                  error={errors.district}
+                />
+                <Select
+                  label="Upazila / Area"
+                  value={upazila}
+                  onChange={setUpazila}
+                  options={upazilas[district] ?? ["Central"]}
+                  error={errors.upazila}
+                />
               </div>
-              <Field label="Full address" placeholder="House / Road / Area" value={address} onChange={setAddress} error={errors.address} required />
-              <Field label="Delivery note (optional)" placeholder="Any specific instructions" value={deliveryNote} onChange={setDeliveryNote} error={errors.deliveryNote} />
+              <Field
+                label="Full address"
+                placeholder="House / Road / Area"
+                value={address}
+                onChange={setAddress}
+                error={errors.address}
+                required
+              />
+              <Field
+                label="Delivery note (optional)"
+                placeholder="Any specific instructions"
+                value={deliveryNote}
+                onChange={setDeliveryNote}
+                error={errors.deliveryNote}
+              />
               <div className="mt-2 flex items-start gap-3 p-3.5 rounded-xl bg-cream/60 border border-gold/30">
                 <Truck className="h-5 w-5 text-gold-deep shrink-0 mt-0.5" />
                 <div className="text-xs text-foreground/80">
-                  Inside Dhaka: 1–2 days · ৳60 · Outside Dhaka: 3–5 days · ৳120. Free delivery on orders over ৳2,500.
+                  Inside Dhaka: 1–2 days · ৳60 · Outside Dhaka: 3–5 days · ৳120. Free delivery on
+                  orders over ৳2,500.
                 </div>
               </div>
             </div>
@@ -326,7 +399,9 @@ function Checkout() {
               <h2 className="font-display text-2xl tracking-tight">Payment Method</h2>
               <p className="text-sm text-muted-foreground -mt-2">Choose how you'd like to pay.</p>
               {errors.payment && (
-                <p className="text-[11px] text-rose-700 flex items-center gap-1.5"><AlertTriangle className="h-3.5 w-3.5" /> {errors.payment}</p>
+                <p className="text-[11px] text-rose-700 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" /> {errors.payment}
+                </p>
               )}
               <div className="space-y-2.5">
                 {[
@@ -338,11 +413,18 @@ function Checkout() {
                   <label
                     key={m.id}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition ease-soft ${
-                      payment === m.id ? "border-maroon bg-cream/60 shadow-soft" : "border-hairline hover:border-gold/50 hover:bg-cream/30"
+                      payment === m.id
+                        ? "border-maroon bg-cream/60 shadow-soft"
+                        : "border-hairline hover:border-gold/50 hover:bg-cream/30"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <input type="radio" checked={payment === m.id} onChange={() => setPayment(m.id)} className="accent-maroon h-4 w-4" />
+                      <input
+                        type="radio"
+                        checked={payment === m.id}
+                        onChange={() => setPayment(m.id)}
+                        className="accent-maroon h-4 w-4"
+                      />
                       <div>
                         <div className="font-medium text-sm">{m.label}</div>
                         <div className="text-[11px] text-muted-foreground">{m.note}</div>
@@ -359,13 +441,26 @@ function Checkout() {
               {["bKash", "Nagad", "Rocket"].includes(payment) && (
                 <div className="mt-4 bg-cream/60 rounded-xl p-4 border border-gold/30 animate-fade-up">
                   <div className="text-sm">
-                    Send <span className="font-display text-maroon text-lg font-semibold">{taka(total)}</span> to merchant{" "}
-                    <span className="font-semibold text-charcoal">01700-000000</span> via {payment}.
+                    Send{" "}
+                    <span className="font-display text-maroon text-lg font-semibold">
+                      {taka(total)}
+                    </span>{" "}
+                    to merchant <span className="font-semibold text-charcoal">01700-000000</span>{" "}
+                    via {payment}.
                   </div>
                   <div className="mt-3">
-                    <Field label="Transaction ID" placeholder="e.g. 9BHX22YT01" value={trxId} onChange={setTrxId} error={errors.trxId} required />
+                    <Field
+                      label="Transaction ID"
+                      placeholder="e.g. 9BHX22YT01"
+                      value={trxId}
+                      onChange={setTrxId}
+                      error={errors.trxId}
+                      required
+                    />
                   </div>
-                  <p className="mt-3 text-[11px] text-muted-foreground">Your payment will be verified by admin before confirmation.</p>
+                  <p className="mt-3 text-[11px] text-muted-foreground">
+                    Your payment will be verified by admin before confirmation.
+                  </p>
                 </div>
               )}
             </div>
@@ -374,23 +469,45 @@ function Checkout() {
             <div className="space-y-4">
               <h2 className="font-display text-2xl tracking-tight">Review your order</h2>
               <div className="space-y-1 text-sm bg-cream/40 rounded-xl p-4 border border-gold/15">
-                <div className="flex justify-between"><span className="text-muted-foreground">Name</span><span className="font-medium">{name}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Phone</span><span className="font-medium">{phone}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Address</span><span className="font-medium text-right max-w-[60%]">{address}, {upazila || district}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Payment</span><span className="font-medium">{payment}{trxId ? ` · ${trxId}` : ""}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Name</span>
+                  <span className="font-medium">{name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Phone</span>
+                  <span className="font-medium">{phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Address</span>
+                  <span className="font-medium text-right max-w-[60%]">
+                    {address}, {upazila || district}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Payment</span>
+                  <span className="font-medium">
+                    {payment}
+                    {trxId ? ` · ${trxId}` : ""}
+                  </span>
+                </div>
               </div>
               {cart.map((it, i) => (
                 <div key={i} className="flex gap-3 py-3 border-b border-hairline/60 last:border-0">
                   <img src={it.image} className="h-16 w-14 object-cover rounded-lg" alt="" />
                   <div className="flex-1 text-sm">
                     <div className="font-medium">{it.name}</div>
-                    <div className="text-xs text-muted-foreground">{it.size} · {it.color} × {it.qty}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {it.size} · {it.color} × {it.qty}
+                    </div>
                   </div>
-                  <div className="font-medium font-display text-maroon">{taka(it.price * it.qty)}</div>
+                  <div className="font-medium font-display text-maroon">
+                    {taka(it.price * it.qty)}
+                  </div>
                 </div>
               ))}
               <div className="text-sm text-muted-foreground flex items-center gap-2 mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-100">
-                <ShieldCheck className="h-4 w-4 text-emerald-700" /> Secure checkout — your data is encrypted
+                <ShieldCheck className="h-4 w-4 text-emerald-700" /> Secure checkout — your data is
+                encrypted
               </div>
             </div>
           )}
@@ -405,7 +522,10 @@ function Checkout() {
               Back
             </button>
             {step < 3 ? (
-              <button onClick={goNext} className="btn-maroon px-8 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2">
+              <button
+                onClick={goNext}
+                className="btn-maroon px-8 py-3 rounded-full text-sm font-semibold inline-flex items-center gap-2"
+              >
                 Continue <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
@@ -429,13 +549,19 @@ function Checkout() {
               <div key={i} className="flex gap-3">
                 <div className="relative">
                   <img src={it.image} className="h-14 w-12 object-cover rounded-lg" alt="" />
-                  <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-maroon text-primary-foreground text-[10px] font-semibold grid place-items-center">{it.qty}</span>
+                  <span className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-maroon text-primary-foreground text-[10px] font-semibold grid place-items-center">
+                    {it.qty}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-xs font-medium line-clamp-1">{it.name}</div>
-                  <div className="text-[11px] text-muted-foreground">{it.size} · {it.color}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    {it.size} · {it.color}
+                  </div>
                 </div>
-                <div className="text-xs font-medium font-display text-maroon">{taka(it.price * it.qty)}</div>
+                <div className="text-xs font-medium font-display text-maroon">
+                  {taka(it.price * it.qty)}
+                </div>
               </div>
             ))}
           </div>
@@ -452,13 +578,18 @@ function Checkout() {
                   <div>
                     <div className="font-semibold text-emerald-800">{appliedCoupon.code}</div>
                     <div className="text-[11px] text-emerald-700/80">
-                      {appliedCoupon.type === "Percentage" && `${appliedCoupon.value}% off subtotal`}
+                      {appliedCoupon.type === "Percentage" &&
+                        `${appliedCoupon.value}% off subtotal`}
                       {appliedCoupon.type === "Flat" && `${taka(appliedCoupon.value)} off`}
                       {appliedCoupon.type === "Free Delivery" && "Free delivery"}
                     </div>
                   </div>
                 </div>
-                <button onClick={removeCoupon} className="p-1.5 rounded-full hover:bg-emerald-100 text-emerald-800" aria-label="Remove coupon">
+                <button
+                  onClick={removeCoupon}
+                  className="p-1.5 rounded-full hover:bg-emerald-100 text-emerald-800"
+                  aria-label="Remove coupon"
+                >
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -474,7 +605,9 @@ function Checkout() {
                     onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
                     placeholder="Enter code"
                     className={`flex-1 px-3 py-2.5 rounded-lg bg-cream/50 text-sm outline-none border tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal placeholder:text-muted-foreground/70 transition ${
-                      couponError ? "border-rose-400 bg-rose-50/50" : "border-hairline focus:border-maroon focus:bg-ivory"
+                      couponError
+                        ? "border-rose-400 bg-rose-50/50"
+                        : "border-hairline focus:border-maroon focus:bg-ivory"
                     }`}
                   />
                   <button
@@ -500,11 +633,17 @@ function Checkout() {
             {discount > 0 && (
               <Row label={`Discount (${appliedCoupon?.code})`} value={`− ${taka(discount)}`} good />
             )}
-            <Row label="Delivery" value={delivery === 0 ? "Free" : taka(delivery)} good={delivery === 0} />
+            <Row
+              label="Delivery"
+              value={delivery === 0 ? "Free" : taka(delivery)}
+              good={delivery === 0}
+            />
           </div>
           <div className="mt-3 pt-3 border-t border-hairline flex items-baseline justify-between">
             <span className="font-display text-lg">Total</span>
-            <span className="font-display text-2xl text-maroon font-semibold transition-all">{taka(total)}</span>
+            <span className="font-display text-2xl text-maroon font-semibold transition-all">
+              {taka(total)}
+            </span>
           </div>
           {discount > 0 && (
             <div className="mt-2 text-[11px] text-emerald-700 font-medium text-right animate-fade-up">
@@ -530,10 +669,15 @@ function Checkout() {
           </button>
           <div className="flex-1 text-right">
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</div>
-            <div className="font-display text-base text-maroon font-semibold leading-tight">{taka(total)}</div>
+            <div className="font-display text-base text-maroon font-semibold leading-tight">
+              {taka(total)}
+            </div>
           </div>
           {step < 3 ? (
-            <button onClick={goNext} className="btn-maroon h-12 px-5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5">
+            <button
+              onClick={goNext}
+              className="btn-maroon h-12 px-5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5"
+            >
               Continue <ChevronRight className="h-4 w-4" />
             </button>
           ) : (
@@ -570,14 +714,17 @@ function Field({
   return (
     <div>
       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
+        {label}
+        {required && <span className="text-rose-500 ml-0.5">*</span>}
       </label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         className={`mt-1.5 w-full px-4 py-3 rounded-lg bg-cream/50 text-sm outline-none border transition ${
-          error ? "border-rose-400 bg-rose-50/50" : "border-hairline focus:border-maroon focus:bg-ivory"
+          error
+            ? "border-rose-400 bg-rose-50/50"
+            : "border-hairline focus:border-maroon focus:bg-ivory"
         }`}
       />
       {error && (
@@ -589,19 +736,37 @@ function Field({
   );
 }
 
-function Select({ label, value, onChange, options, error }: { label: string; value?: string; onChange?: (v: string) => void; options: string[]; error?: string }) {
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+  error,
+}: {
+  label: string;
+  value?: string;
+  onChange?: (v: string) => void;
+  options: string[];
+  error?: string;
+}) {
   return (
     <div>
-      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
       <select
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
         className={`mt-1.5 w-full px-4 py-3 rounded-lg bg-cream/50 text-sm outline-none border transition ${
-          error ? "border-rose-400 bg-rose-50/50" : "border-hairline focus:border-maroon focus:bg-ivory"
+          error
+            ? "border-rose-400 bg-rose-50/50"
+            : "border-hairline focus:border-maroon focus:bg-ivory"
         }`}
       >
         <option value="">Select…</option>
-        {options.map((d) => <option key={d}>{d}</option>)}
+        {options.map((d) => (
+          <option key={d}>{d}</option>
+        ))}
       </select>
       {error && (
         <p className="mt-1 text-[11px] text-rose-700 flex items-center gap-1">

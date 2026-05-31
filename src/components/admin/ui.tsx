@@ -1,6 +1,14 @@
 import { type ReactNode } from "react";
 
-export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
+export function PageHeader({
+  title,
+  subtitle,
+  actions,
+}: {
+  title: string;
+  subtitle?: string;
+  actions?: ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-3 mb-7 pb-5 border-b border-hairline">
       <div>
@@ -12,16 +20,36 @@ export function PageHeader({ title, subtitle, actions }: { title: string; subtit
   );
 }
 
-export function StatCard({ label, value, delta, accent }: { label: string; value: string; delta?: string; accent?: "good" | "warn" }) {
+export function StatCard({
+  label,
+  value,
+  delta,
+  accent,
+}: {
+  label: string;
+  value: string;
+  delta?: string;
+  accent?: "good" | "warn";
+}) {
   return (
     <div className="relative bg-card rounded-2xl p-5 border border-hairline overflow-hidden group hover:shadow-soft transition-shadow ease-soft">
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
-      <div className="text-[10px] text-muted-foreground uppercase tracking-[0.18em] font-semibold">{label}</div>
-      <div className="mt-2.5 font-display text-2xl md:text-3xl text-maroon tracking-tight">{value}</div>
+      <div className="text-[10px] text-muted-foreground uppercase tracking-[0.18em] font-semibold">
+        {label}
+      </div>
+      <div className="mt-2.5 font-display text-2xl md:text-3xl text-maroon tracking-tight">
+        {value}
+      </div>
       {delta && (
-        <div className={`mt-1.5 text-xs font-medium inline-flex items-center gap-1 ${
-          accent === "good" ? "text-emerald-700" : accent === "warn" ? "text-amber-700" : "text-muted-foreground"
-        }`}>
+        <div
+          className={`mt-1.5 text-xs font-medium inline-flex items-center gap-1 ${
+            accent === "good"
+              ? "text-emerald-700"
+              : accent === "warn"
+                ? "text-amber-700"
+                : "text-muted-foreground"
+          }`}
+        >
           {delta}
         </div>
       )}
@@ -64,7 +92,9 @@ export function StatusPill({ status }: { status: string }) {
     Archived: "bg-red-50 text-red-700 ring-red-200",
   };
   return (
-    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ring-1 ring-inset ${map[status] ?? "bg-secondary ring-border"}`}>
+    <span
+      className={`text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ring-1 ring-inset ${map[status] ?? "bg-secondary ring-border"}`}
+    >
       {status}
     </span>
   );

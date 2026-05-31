@@ -5,7 +5,9 @@ This is a premium, high-fidelity UI-only prototype of the **Nongor Boutique** ap
 ---
 
 > [!WARNING]
+>
 > ### 🔒 Mock Authentication & Security Disclaimer
+>
 > The admin login flow implemented inside this repository utilizes local browser state and `localStorage` (`nongor_admin_auth` and `nongor_orders` keys).
 > This is a **UI-only mock authentication mechanism** meant for prototyping and visual demonstration purposes.
 > **DO NOT** use this method for production security. Before launching to production, this must be integrated with a robust secure authentication backend (such as Supabase Auth or a secure OAuth provider) and server-side route guarding.
@@ -15,10 +17,12 @@ This is a premium, high-fidelity UI-only prototype of the **Nongor Boutique** ap
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18+)
 - npm, yarn, bun, or pnpm
 
 ### Installation
+
 ```bash
 npm install
 # or
@@ -26,6 +30,7 @@ bun install
 ```
 
 ### Running Locally
+
 ```bash
 npm run dev
 # or
@@ -33,6 +38,7 @@ bun run dev
 ```
 
 ### Production Build
+
 ```bash
 npm run build
 ```

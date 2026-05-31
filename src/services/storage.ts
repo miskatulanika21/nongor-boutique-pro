@@ -1,18 +1,18 @@
 /**
  * Storage service — upload/delete files in Supabase Storage buckets
  */
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-type Bucket = 'product-images' | 'payment-proofs' | 'brand-assets';
+type Bucket = "product-images" | "payment-proofs" | "brand-assets";
 
 /** Upload a file to a storage bucket */
 export async function uploadFile(
   bucket: Bucket,
   path: string,
   file: File,
-  options?: { upsert?: boolean }
+  options?: { upsert?: boolean },
 ): Promise<{ url: string } | { error: string }> {
-  if (!isSupabaseConfigured) return { error: 'Supabase not configured' };
+  if (!isSupabaseConfigured) return { error: "Supabase not configured" };
 
   const { error } = await supabase.storage
     .from(bucket)
@@ -22,9 +22,9 @@ export async function uploadFile(
     console.error(`[storage] upload to ${bucket} error:`, error);
     // Fallback to mock image to allow testing image uploads under restrictive RLS
     const mockImages = [
-      'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=80',
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=800&q=80",
+      "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=800&q=80",
     ];
     const url = mockImages[Math.floor(Math.random() * mockImages.length)];
     return { url };
@@ -54,26 +54,26 @@ export async function deleteFile(bucket: Bucket, path: string): Promise<boolean>
 
 /** Upload a product image and return its public URL */
 export async function uploadProductImage(file: File, productSlug: string): Promise<string | null> {
-  const ext = file.name.split('.').pop() ?? 'jpg';
+  const ext = file.name.split(".").pop() ?? "jpg";
   const path = `${productSlug}/${Date.now()}.${ext}`;
-  const result = await uploadFile('product-images', path, file);
-  return 'url' in result ? result.url : null;
+  const result = await uploadFile("product-images", path, file);
+  return "url" in result ? result.url : null;
 }
 
 /** Delete a product image by its full URL (extracts the path) */
 export async function deleteProductImage(imageUrl: string): Promise<boolean> {
   // Extract path from URL: https://xxx.supabase.co/storage/v1/object/public/product-images/path
-  const marker = '/product-images/';
+  const marker = "/product-images/";
   const idx = imageUrl.indexOf(marker);
   if (idx === -1) return false;
   const path = imageUrl.slice(idx + marker.length);
-  return deleteFile('product-images', path);
+  return deleteFile("product-images", path);
 }
 
 /** Upload payment proof */
 export async function uploadPaymentProof(file: File, orderId: string): Promise<string | null> {
-  const ext = file.name.split('.').pop() ?? 'jpg';
+  const ext = file.name.split(".").pop() ?? "jpg";
   const path = `${orderId}/${Date.now()}.${ext}`;
-  const result = await uploadFile('payment-proofs', path, file);
-  return 'url' in result ? result.url : null;
+  const result = await uploadFile("payment-proofs", path, file);
+  return "url" in result ? result.url : null;
 }

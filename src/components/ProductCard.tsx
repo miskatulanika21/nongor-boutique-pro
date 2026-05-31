@@ -53,19 +53,29 @@ export function ProductCard({ p }: { p: Product }) {
 
         {/* Wishlist */}
         <button
-          onClick={() => { shop.toggleWishlist(p.id); toast.success(wished ? "Removed from wishlist" : "Saved to wishlist"); }}
+          onClick={() => {
+            shop.toggleWishlist(p.id);
+            toast.success(wished ? "Removed from wishlist" : "Saved to wishlist");
+          }}
           className={`absolute top-3 right-3 h-9 w-9 grid place-items-center rounded-full bg-ivory/90 backdrop-blur-sm hover:bg-ivory hover:scale-110 transition-all duration-300 ease-soft shadow-soft ${
             wished ? "text-maroon" : "text-foreground/70"
           }`}
           aria-label={wished ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className={`h-[15px] w-[15px] transition ${wished ? "fill-current scale-110" : ""}`} />
+          <Heart
+            className={`h-[15px] w-[15px] transition ${wished ? "fill-current scale-110" : ""}`}
+          />
         </button>
 
         {/* Quick actions */}
         <div className="absolute inset-x-3 bottom-3 flex gap-2 opacity-0 group-hover:opacity-100 translate-y-3 group-hover:translate-y-0 transition-all duration-400 ease-soft">
           <button
-            onClick={() => { if (!outOfStock) { quickAddToCart(shop, p); toast.success("Added to your bag"); } }}
+            onClick={() => {
+              if (!outOfStock) {
+                quickAddToCart(shop, p);
+                toast.success("Added to your bag");
+              }
+            }}
             disabled={outOfStock}
             className="flex-1 btn-maroon rounded-full py-2.5 text-[11px] uppercase tracking-[0.15em] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -90,13 +100,19 @@ export function ProductCard({ p }: { p: Product }) {
           </h3>
         </Link>
         {p.fabric && (
-          <div className="mt-0.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/80">{p.fabric}</div>
+          <div className="mt-0.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground/80">
+            {p.fabric}
+          </div>
         )}
         <div className="mt-2 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-lg text-maroon font-semibold tracking-tight">{taka(price)}</span>
+            <span className="font-display text-lg text-maroon font-semibold tracking-tight">
+              {taka(price)}
+            </span>
             {p.discountPrice && (
-              <span className="text-[11px] text-muted-foreground line-through">{taka(p.price)}</span>
+              <span className="text-[11px] text-muted-foreground line-through">
+                {taka(p.price)}
+              </span>
             )}
           </div>
           <div className="flex gap-1">

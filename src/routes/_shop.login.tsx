@@ -3,26 +3,50 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Logo } from "@/components/Logo";
 import { toast } from "sonner";
-import { Mail, Lock, Eye, EyeOff, Loader2, User2, Phone, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  User2,
+  Phone,
+  ShieldCheck,
+  ArrowLeft,
+  CheckCircle2,
+} from "lucide-react";
 
 type Mode = "signin" | "signup" | "forgot";
 
 export const Route = createFileRoute("/_shop/login")({
   validateSearch: (search: Record<string, unknown>): { redirect?: string; mode?: Mode } => ({
     redirect: typeof search.redirect === "string" ? search.redirect : undefined,
-    mode: (search.mode === "signup" || search.mode === "forgot" ? search.mode : undefined) as Mode | undefined,
+    mode: (search.mode === "signup" || search.mode === "forgot" ? search.mode : undefined) as
+      | Mode
+      | undefined,
   }),
   head: () => ({
     meta: [
       { title: "Sign in — Nongor" },
-      { name: "description", content: "Sign in to your Nongor account to track orders, save favourites, and check out faster." },
+      {
+        name: "description",
+        content:
+          "Sign in to your Nongor account to track orders, save favourites, and check out faster.",
+      },
     ],
   }),
   component: LoginPage,
 });
 
 function LoginPage() {
-  const { signIn, signUp, resetPassword: requestPasswordReset, isAuthenticated, isAdmin, isLoading: loading } = useAuth();
+  const {
+    signIn,
+    signUp,
+    resetPassword: requestPasswordReset,
+    isAuthenticated,
+    isAdmin,
+    isLoading: loading,
+  } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: "/_shop/login" });
   const [mode, setMode] = useState<Mode>(search.mode ?? "signin");
@@ -38,13 +62,23 @@ function LoginPage() {
 
   return (
     <div className="relative min-h-[80vh] grid place-items-center px-4 py-10 md:py-16 overflow-hidden">
-      <div className="absolute inset-0 pattern-nakshi opacity-[0.05] pointer-events-none" aria-hidden />
-      <div className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-cream/60 to-transparent pointer-events-none" aria-hidden />
+      <div
+        className="absolute inset-0 pattern-nakshi opacity-[0.05] pointer-events-none"
+        aria-hidden
+      />
+      <div
+        className="absolute inset-x-0 top-0 h-72 bg-gradient-to-b from-cream/60 to-transparent pointer-events-none"
+        aria-hidden
+      />
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center"><Logo /></div>
-          <div className="mt-3 text-[10px] uppercase tracking-[0.3em] text-gold-deep">Boutique Account</div>
+          <div className="inline-flex items-center justify-center">
+            <Logo />
+          </div>
+          <div className="mt-3 text-[10px] uppercase tracking-[0.3em] text-gold-deep">
+            Boutique Account
+          </div>
           <h1 className="mt-2 font-display text-3xl md:text-4xl text-foreground">
             {mode === "signin" && "Welcome back"}
             {mode === "signup" && "Create your account"}
@@ -79,13 +113,24 @@ function LoginPage() {
 
           {mode === "signin" && <SignInForm onForgot={() => setMode("forgot")} signIn={signIn} />}
           {mode === "signup" && <SignUpForm signUp={signUp} onSignedIn={() => setMode("signin")} />}
-          {mode === "forgot" && <ForgotForm onBack={() => setMode("signin")} request={requestPasswordReset} />}
+          {mode === "forgot" && (
+            <ForgotForm onBack={() => setMode("signin")} request={requestPasswordReset} />
+          )}
 
           <p className="mt-6 text-center text-[11px] text-muted-foreground leading-relaxed">
             By continuing, you agree to Nongor's{" "}
-            <Link to="/terms" className="text-maroon hover:underline">Terms</Link>,{" "}
-            <Link to="/privacy-policy" className="text-maroon hover:underline">Privacy Policy</Link>, and{" "}
-            <Link to="/return-policy" className="text-maroon hover:underline">Return Policy</Link>.
+            <Link to="/terms" className="text-maroon hover:underline">
+              Terms
+            </Link>
+            ,{" "}
+            <Link to="/privacy-policy" className="text-maroon hover:underline">
+              Privacy Policy
+            </Link>
+            , and{" "}
+            <Link to="/return-policy" className="text-maroon hover:underline">
+              Return Policy
+            </Link>
+            .
           </p>
         </div>
 
@@ -99,7 +144,14 @@ function LoginPage() {
 }
 
 function Field({
-  icon: Icon, type = "text", value, onChange, placeholder, label, autoComplete, required = true,
+  icon: Icon,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  label,
+  autoComplete,
+  required = true,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   type?: string;
@@ -112,7 +164,9 @@ function Field({
 }) {
   return (
     <div>
-      <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
       <div className="mt-1.5 relative">
         <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -130,12 +184,24 @@ function Field({
 }
 
 function PasswordField({
-  value, onChange, label = "Password", autoComplete = "current-password", placeholder = "••••••••",
-}: { value: string; onChange: (v: string) => void; label?: string; autoComplete?: string; placeholder?: string; }) {
+  value,
+  onChange,
+  label = "Password",
+  autoComplete = "current-password",
+  placeholder = "••••••••",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label?: string;
+  autoComplete?: string;
+  placeholder?: string;
+}) {
   const [show, setShow] = useState(false);
   return (
     <div>
-      <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</label>
+      <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </label>
       <div className="mt-1.5 relative">
         <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
@@ -147,7 +213,13 @@ function PasswordField({
           required
           className="w-full pl-10 pr-10 py-3 rounded-xl bg-cream/50 text-sm outline-none border border-hairline focus:border-maroon focus:bg-ivory transition"
         />
-        <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1} aria-label={show ? "Hide password" : "Show password"}>
+        <button
+          type="button"
+          onClick={() => setShow(!show)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          tabIndex={-1}
+          aria-label={show ? "Hide password" : "Show password"}
+        >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
@@ -157,7 +229,11 @@ function PasswordField({
 
 function SubmitBtn({ loading, children }: { loading: boolean; children: React.ReactNode }) {
   return (
-    <button type="submit" disabled={loading} className="w-full btn-maroon rounded-xl py-3.5 text-sm font-semibold tracking-wide shadow-elegant disabled:opacity-60 inline-flex items-center justify-center gap-2 transition active:scale-[0.99]">
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full btn-maroon rounded-xl py-3.5 text-sm font-semibold tracking-wide shadow-elegant disabled:opacity-60 inline-flex items-center justify-center gap-2 transition active:scale-[0.99]"
+    >
       {loading && <Loader2 className="h-4 w-4 animate-spin" />}
       {children}
     </button>
@@ -166,10 +242,20 @@ function SubmitBtn({ loading, children }: { loading: boolean; children: React.Re
 
 function ErrorBox({ msg }: { msg: string | null }) {
   if (!msg) return null;
-  return <div className="text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-lg animate-fade-up">{msg}</div>;
+  return (
+    <div className="text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-lg animate-fade-up">
+      {msg}
+    </div>
+  );
 }
 
-function SignInForm({ signIn, onForgot }: { signIn: ReturnType<typeof useAuth>["signIn"]; onForgot: () => void }) {
+function SignInForm({
+  signIn,
+  onForgot,
+}: {
+  signIn: ReturnType<typeof useAuth>["signIn"];
+  onForgot: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -190,10 +276,22 @@ function SignInForm({ signIn, onForgot }: { signIn: ReturnType<typeof useAuth>["
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field icon={Mail} type="email" value={email} onChange={setEmail} label="Email" placeholder="you@example.com" autoComplete="email" />
+      <Field
+        icon={Mail}
+        type="email"
+        value={email}
+        onChange={setEmail}
+        label="Email"
+        placeholder="you@example.com"
+        autoComplete="email"
+      />
       <PasswordField value={password} onChange={setPassword} autoComplete="current-password" />
       <div className="flex justify-end">
-        <button type="button" onClick={onForgot} className="text-xs font-semibold text-maroon hover:text-maroon-deep transition">
+        <button
+          type="button"
+          onClick={onForgot}
+          className="text-xs font-semibold text-maroon hover:text-maroon-deep transition"
+        >
           Forgot password?
         </button>
       </div>
@@ -203,7 +301,13 @@ function SignInForm({ signIn, onForgot }: { signIn: ReturnType<typeof useAuth>["
   );
 }
 
-function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>["signUp"]; onSignedIn: () => void }) {
+function SignUpForm({
+  signUp,
+  onSignedIn,
+}: {
+  signUp: ReturnType<typeof useAuth>["signUp"];
+  onSignedIn: () => void;
+}) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -219,7 +323,8 @@ function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>
     setError(null);
     setSuccess(null);
     if (!fullName.trim()) return setError("Please tell us your name.");
-    if (!validBdPhone(phone)) return setError("Enter a valid Bangladesh phone number (e.g. 01XXXXXXXXX).");
+    if (!validBdPhone(phone))
+      return setError("Enter a valid Bangladesh phone number (e.g. 01XXXXXXXXX).");
     if (password.length < 8) return setError("Password must be at least 8 characters.");
     setLoading(true);
     const res = await signUp(email, password, fullName.trim(), normalizeBdPhone(phone));
@@ -236,15 +341,46 @@ function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field icon={User2} value={fullName} onChange={setFullName} label="Full name" placeholder="Your full name" autoComplete="name" />
-      <Field icon={Mail} type="email" value={email} onChange={setEmail} label="Email" placeholder="you@example.com" autoComplete="email" />
-      <Field icon={Phone} type="tel" value={phone} onChange={setPhone} label="Phone (Bangladesh)" placeholder="01XXXXXXXXX" autoComplete="tel" />
-      <PasswordField value={password} onChange={setPassword} autoComplete="new-password" placeholder="At least 8 characters" />
+      <Field
+        icon={User2}
+        value={fullName}
+        onChange={setFullName}
+        label="Full name"
+        placeholder="Your full name"
+        autoComplete="name"
+      />
+      <Field
+        icon={Mail}
+        type="email"
+        value={email}
+        onChange={setEmail}
+        label="Email"
+        placeholder="you@example.com"
+        autoComplete="email"
+      />
+      <Field
+        icon={Phone}
+        type="tel"
+        value={phone}
+        onChange={setPhone}
+        label="Phone (Bangladesh)"
+        placeholder="01XXXXXXXXX"
+        autoComplete="tel"
+      />
+      <PasswordField
+        value={password}
+        onChange={setPassword}
+        autoComplete="new-password"
+        placeholder="At least 8 characters"
+      />
       {password && (
         <div className="space-y-1.5">
           <div className="flex gap-1.5">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className={`h-1 flex-1 rounded-full transition ${i < strength.score ? strength.color : "bg-cream"}`} />
+              <div
+                key={i}
+                className={`h-1 flex-1 rounded-full transition ${i < strength.score ? strength.color : "bg-cream"}`}
+              />
             ))}
           </div>
           <div className="text-[11px] text-muted-foreground">{strength.label}</div>
@@ -262,7 +398,13 @@ function SignUpForm({ signUp, onSignedIn }: { signUp: ReturnType<typeof useAuth>
   );
 }
 
-function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["resetPassword"]; onBack: () => void }) {
+function ForgotForm({
+  request,
+  onBack,
+}: {
+  request: ReturnType<typeof useAuth>["resetPassword"];
+  onBack: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
@@ -288,10 +430,15 @@ function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["
         <div>
           <div className="font-display text-xl">Email on the way</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            We've sent a secure reset link to <span className="font-semibold text-foreground">{email}</span>. It expires in 1 hour.
+            We've sent a secure reset link to{" "}
+            <span className="font-semibold text-foreground">{email}</span>. It expires in 1 hour.
           </p>
         </div>
-        <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm font-semibold text-maroon hover:text-maroon-deep">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-maroon hover:text-maroon-deep"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </button>
       </div>
@@ -300,10 +447,22 @@ function ForgotForm({ request, onBack }: { request: ReturnType<typeof useAuth>["
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Field icon={Mail} type="email" value={email} onChange={setEmail} label="Email" placeholder="you@example.com" autoComplete="email" />
+      <Field
+        icon={Mail}
+        type="email"
+        value={email}
+        onChange={setEmail}
+        label="Email"
+        placeholder="you@example.com"
+        autoComplete="email"
+      />
       <ErrorBox msg={error} />
       <SubmitBtn loading={loading}>Send reset link</SubmitBtn>
-      <button type="button" onClick={onBack} className="w-full text-center text-xs font-semibold text-muted-foreground hover:text-maroon transition inline-flex items-center justify-center gap-1.5">
+      <button
+        type="button"
+        onClick={onBack}
+        className="w-full text-center text-xs font-semibold text-muted-foreground hover:text-maroon transition inline-flex items-center justify-center gap-1.5"
+      >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
       </button>
     </form>
@@ -345,8 +504,10 @@ function humanise(err?: string) {
   if (!err) return "Something went wrong. Please try again.";
   const e = err.toLowerCase();
   if (e.includes("invalid login")) return "Email or password is incorrect.";
-  if (e.includes("email not confirmed")) return "Please confirm your email first — check your inbox.";
-  if (e.includes("user already registered")) return "An account already exists with this email. Try signing in.";
+  if (e.includes("email not confirmed"))
+    return "Please confirm your email first — check your inbox.";
+  if (e.includes("user already registered"))
+    return "An account already exists with this email. Try signing in.";
   if (e.includes("rate limit")) return "Too many attempts. Please wait a minute and try again.";
   return err;
 }

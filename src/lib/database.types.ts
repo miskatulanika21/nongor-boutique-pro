@@ -16,21 +16,21 @@ export interface Database {
           id: string;
           full_name: string | null;
           phone: string | null;
-          role: 'admin' | 'customer';
+          role: "admin" | "customer";
           created_at: string;
         };
         Insert: {
           id: string;
           full_name?: string | null;
           phone?: string | null;
-          role?: 'admin' | 'customer';
+          role?: "admin" | "customer";
           created_at?: string;
         };
         Update: {
           id?: string;
           full_name?: string | null;
           phone?: string | null;
-          role?: 'admin' | 'customer';
+          role?: "admin" | "customer";
           created_at?: string;
         };
       };
@@ -79,7 +79,7 @@ export interface Database {
           fabric: string | null;
           occasion: string | null;
           care_instructions: string | null;
-          status: 'draft' | 'published' | 'archived';
+          status: "draft" | "published" | "archived";
           is_featured: boolean;
           is_new_arrival: boolean;
           is_best_seller: boolean;
@@ -100,7 +100,7 @@ export interface Database {
           fabric?: string | null;
           occasion?: string | null;
           care_instructions?: string | null;
-          status?: 'draft' | 'published' | 'archived';
+          status?: "draft" | "published" | "archived";
           is_featured?: boolean;
           is_new_arrival?: boolean;
           is_best_seller?: boolean;
@@ -121,7 +121,7 @@ export interface Database {
           fabric?: string | null;
           occasion?: string | null;
           care_instructions?: string | null;
-          status?: 'draft' | 'published' | 'archived';
+          status?: "draft" | "published" | "archived";
           is_featured?: boolean;
           is_new_arrival?: boolean;
           is_best_seller?: boolean;
@@ -248,9 +248,16 @@ export interface Database {
           customer_phone: string;
           customer_email: string | null;
           address_id: string | null;
-          order_status: 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
-          payment_method: 'cod' | 'bkash' | 'nagad' | 'rocket' | 'sslcommerz' | 'shurjopay';
-          payment_status: 'pending' | 'verification_needed' | 'paid' | 'failed' | 'refunded';
+          order_status:
+            | "pending"
+            | "confirmed"
+            | "processing"
+            | "packed"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method: "cod" | "bkash" | "nagad" | "rocket" | "sslcommerz" | "shurjopay";
+          payment_status: "pending" | "verification_needed" | "paid" | "failed" | "refunded";
           subtotal: number;
           discount_amount: number;
           delivery_charge: number;
@@ -270,9 +277,16 @@ export interface Database {
           customer_phone: string;
           customer_email?: string | null;
           address_id?: string | null;
-          order_status?: 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
-          payment_method: 'cod' | 'bkash' | 'nagad' | 'rocket' | 'sslcommerz' | 'shurjopay';
-          payment_status?: 'pending' | 'verification_needed' | 'paid' | 'failed' | 'refunded';
+          order_status?:
+            | "pending"
+            | "confirmed"
+            | "processing"
+            | "packed"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method: "cod" | "bkash" | "nagad" | "rocket" | "sslcommerz" | "shurjopay";
+          payment_status?: "pending" | "verification_needed" | "paid" | "failed" | "refunded";
           subtotal: number;
           discount_amount?: number;
           delivery_charge?: number;
@@ -292,9 +306,16 @@ export interface Database {
           customer_phone?: string;
           customer_email?: string | null;
           address_id?: string | null;
-          order_status?: 'pending' | 'confirmed' | 'processing' | 'packed' | 'shipped' | 'delivered' | 'cancelled';
-          payment_method?: 'cod' | 'bkash' | 'nagad' | 'rocket' | 'sslcommerz' | 'shurjopay';
-          payment_status?: 'pending' | 'verification_needed' | 'paid' | 'failed' | 'refunded';
+          order_status?:
+            | "pending"
+            | "confirmed"
+            | "processing"
+            | "packed"
+            | "shipped"
+            | "delivered"
+            | "cancelled";
+          payment_method?: "cod" | "bkash" | "nagad" | "rocket" | "sslcommerz" | "shurjopay";
+          payment_status?: "pending" | "verification_needed" | "paid" | "failed" | "refunded";
           subtotal?: number;
           discount_amount?: number;
           delivery_charge?: number;
@@ -356,7 +377,7 @@ export interface Database {
           amount: number;
           trx_id: string | null;
           proof_image_url: string | null;
-          status: 'pending' | 'approved' | 'rejected' | 'failed';
+          status: "pending" | "approved" | "rejected" | "failed";
           verified_by: string | null;
           verified_at: string | null;
           rejection_reason: string | null;
@@ -369,7 +390,7 @@ export interface Database {
           amount: number;
           trx_id?: string | null;
           proof_image_url?: string | null;
-          status?: 'pending' | 'approved' | 'rejected' | 'failed';
+          status?: "pending" | "approved" | "rejected" | "failed";
           verified_by?: string | null;
           verified_at?: string | null;
           rejection_reason?: string | null;
@@ -382,7 +403,7 @@ export interface Database {
           amount?: number;
           trx_id?: string | null;
           proof_image_url?: string | null;
-          status?: 'pending' | 'approved' | 'rejected' | 'failed';
+          status?: "pending" | "approved" | "rejected" | "failed";
           verified_by?: string | null;
           verified_at?: string | null;
           rejection_reason?: string | null;
@@ -393,7 +414,7 @@ export interface Database {
         Row: {
           id: string;
           code: string;
-          type: 'percent' | 'flat' | 'free_delivery';
+          type: "percent" | "flat" | "free_delivery";
           value: number;
           minimum_order: number;
           usage_limit: number | null;
@@ -406,7 +427,7 @@ export interface Database {
         Insert: {
           id?: string;
           code: string;
-          type: 'percent' | 'flat' | 'free_delivery';
+          type: "percent" | "flat" | "free_delivery";
           value?: number;
           minimum_order?: number;
           usage_limit?: number | null;
@@ -419,7 +440,7 @@ export interface Database {
         Update: {
           id?: string;
           code?: string;
-          type?: 'percent' | 'flat' | 'free_delivery';
+          type?: "percent" | "flat" | "free_delivery";
           value?: number;
           minimum_order?: number;
           usage_limit?: number | null;
@@ -570,24 +591,27 @@ export interface Database {
 }
 
 // ─── Convenience aliases ───────────────────────────────────
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
-export type InsertTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
-export type UpdateTables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+export type Tables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
+export type InsertTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
+export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
 
 // Common row types
-export type Profile = Tables<'profiles'>;
-export type Category = Tables<'categories'>;
-export type DbProduct = Tables<'products'>;
-export type ProductImage = Tables<'product_images'>;
-export type ProductVariant = Tables<'product_variants'>;
-export type Address = Tables<'addresses'>;
-export type DbOrder = Tables<'orders'>;
-export type OrderItem = Tables<'order_items'>;
-export type Payment = Tables<'payments'>;
-export type Coupon = Tables<'coupons'>;
-export type SiteSetting = Tables<'site_settings'>;
-export type Banner = Tables<'banners'>;
-export type Review = Tables<'reviews'>;
+export type Profile = Tables<"profiles">;
+export type Category = Tables<"categories">;
+export type DbProduct = Tables<"products">;
+export type ProductImage = Tables<"product_images">;
+export type ProductVariant = Tables<"product_variants">;
+export type Address = Tables<"addresses">;
+export type DbOrder = Tables<"orders">;
+export type OrderItem = Tables<"order_items">;
+export type Payment = Tables<"payments">;
+export type Coupon = Tables<"coupons">;
+export type SiteSetting = Tables<"site_settings">;
+export type Banner = Tables<"banners">;
+export type Review = Tables<"reviews">;
 
 /** Product with joined images and variants — what the frontend usually works with */
 export type ProductWithDetails = DbProduct & {

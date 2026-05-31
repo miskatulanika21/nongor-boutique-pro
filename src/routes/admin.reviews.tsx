@@ -19,7 +19,16 @@ function Page() {
       ) : (
         <TableShell>
           <table className="w-full text-sm min-w-[700px]">
-            <thead className="bg-secondary/50 text-xs text-muted-foreground"><tr><th className="text-left p-3">Product</th><th className="text-left p-3">Customer</th><th className="text-left p-3">Rating</th><th className="text-left p-3">Review</th><th className="text-left p-3">Status</th><th></th></tr></thead>
+            <thead className="bg-secondary/50 text-xs text-muted-foreground">
+              <tr>
+                <th className="text-left p-3">Product</th>
+                <th className="text-left p-3">Customer</th>
+                <th className="text-left p-3">Rating</th>
+                <th className="text-left p-3">Review</th>
+                <th className="text-left p-3">Status</th>
+                <th></th>
+              </tr>
+            </thead>
             <tbody>
               {reviews.map((r) => (
                 <tr key={r.id} className="border-t border-border/40">
@@ -27,13 +36,31 @@ function Page() {
                   <td className="p-3 text-sm">{r.customer}</td>
                   <td className="p-3 text-gold">{"★".repeat(r.rating)}</td>
                   <td className="p-3 text-sm text-muted-foreground max-w-xs">{r.text}</td>
-                  <td className="p-3"><StatusPill status={r.status} /></td>
+                  <td className="p-3">
+                    <StatusPill status={r.status} />
+                  </td>
                   <td className="p-3 text-right whitespace-nowrap">
                     {r.status === "Pending" && (
-                      <button onClick={() => approve(r.id)} className="p-1 hover:text-green-700" title="Approve"><Check className="h-4 w-4" /></button>
+                      <button
+                        onClick={() => approve(r.id)}
+                        className="p-1 hover:text-green-700"
+                        title="Approve"
+                      >
+                        <Check className="h-4 w-4" />
+                      </button>
                     )}
-                    <button className="p-1 hover:text-muted-foreground" title="Hide (coming soon)"><EyeOff className="h-4 w-4" /></button>
-                    <button onClick={() => { if (confirm("Delete review?")) deleteReview(r.id); }} className="p-1 hover:text-destructive" title="Delete"><Trash2 className="h-4 w-4" /></button>
+                    <button className="p-1 hover:text-muted-foreground" title="Hide (coming soon)">
+                      <EyeOff className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm("Delete review?")) deleteReview(r.id);
+                      }}
+                      className="p-1 hover:text-destructive"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </td>
                 </tr>
               ))}

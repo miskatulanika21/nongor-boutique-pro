@@ -1,30 +1,38 @@
 /**
  * Product service — fetches from Supabase with mock fallback
  */
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { ProductWithDetails, DbProduct, ProductImage, ProductVariant } from '@/lib/database.types';
-import { products as mockProducts, type Product as MockProduct } from '@/data/mock';
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import type {
+  ProductWithDetails,
+  DbProduct,
+  ProductImage,
+  ProductVariant,
+} from "@/lib/database.types";
+import { products as mockProducts, type Product as MockProduct } from "@/data/mock";
 
 // ─── Public queries ────────────────────────────────────────
 
 /** Fetch all published products with images & variants */
 export async function getPublishedProducts(): Promise<ProductWithDetails[]> {
-  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter(p => p.status === 'Published'));
+  if (!isSupabaseConfigured)
+    return mockToDetails(mockProducts.filter((p) => p.status === "Published"));
 
   const { data, error } = await supabase
-    .from('products')
-    .select(`
+    .from("products")
+    .select(
+      `
       *,
       images:product_images(*),
       variants:product_variants(*),
       category:categories(*)
-    `)
-    .eq('status', 'published')
-    .order('created_at', { ascending: false });
+    `,
+    )
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[products] getPublishedProducts error:', error);
-    return mockToDetails(mockProducts.filter(p => p.status === 'Published'));
+    console.error("[products] getPublishedProducts error:", error);
+    return mockToDetails(mockProducts.filter((p) => p.status === "Published"));
   }
 
   return (data ?? []) as ProductWithDetails[];
@@ -33,24 +41,26 @@ export async function getPublishedProducts(): Promise<ProductWithDetails[]> {
 /** Fetch single product by slug */
 export async function getProductBySlug(slug: string): Promise<ProductWithDetails | null> {
   if (!isSupabaseConfigured) {
-    const m = mockProducts.find(p => p.slug === slug);
+    const m = mockProducts.find((p) => p.slug === slug);
     return m ? mockToDetail(m) : null;
   }
 
   const { data, error } = await supabase
-    .from('products')
-    .select(`
+    .from("products")
+    .select(
+      `
       *,
       images:product_images(*),
       variants:product_variants(*),
       category:categories(*)
-    `)
-    .eq('slug', slug)
+    `,
+    )
+    .eq("slug", slug)
     .single();
 
   if (error) {
-    console.error('[products] getProductBySlug error:', error);
-    const m = mockProducts.find(p => p.slug === slug);
+    console.error("[products] getProductBySlug error:", error);
+    const m = mockProducts.find((p) => p.slug === slug);
     return m ? mockToDetail(m) : null;
   }
 
@@ -59,18 +69,18 @@ export async function getProductBySlug(slug: string): Promise<ProductWithDetails
 
 /** Fetch featured products */
 export async function getFeaturedProducts(): Promise<ProductWithDetails[]> {
-  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter(p => p.featured));
+  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter((p) => p.featured));
 
   const { data, error } = await supabase
-    .from('products')
-    .select('*, images:product_images(*), variants:product_variants(*)')
-    .eq('status', 'published')
-    .eq('is_featured', true)
-    .order('created_at', { ascending: false });
+    .from("products")
+    .select("*, images:product_images(*), variants:product_variants(*)")
+    .eq("status", "published")
+    .eq("is_featured", true)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[products] getFeaturedProducts error:', error);
-    return mockToDetails(mockProducts.filter(p => p.featured));
+    console.error("[products] getFeaturedProducts error:", error);
+    return mockToDetails(mockProducts.filter((p) => p.featured));
   }
 
   return (data ?? []) as ProductWithDetails[];
@@ -78,45 +88,49 @@ export async function getFeaturedProducts(): Promise<ProductWithDetails[]> {
 
 /** Fetch new arrivals */
 export async function getNewArrivals(): Promise<ProductWithDetails[]> {
-  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter(p => p.isNew));
+  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter((p) => p.isNew));
 
   const { data, error } = await supabase
-    .from('products')
-    .select('*, images:product_images(*), variants:product_variants(*)')
-    .eq('status', 'published')
-    .eq('is_new_arrival', true)
-    .order('created_at', { ascending: false });
+    .from("products")
+    .select("*, images:product_images(*), variants:product_variants(*)")
+    .eq("status", "published")
+    .eq("is_new_arrival", true)
+    .order("created_at", { ascending: false });
 
-  if (error) return mockToDetails(mockProducts.filter(p => p.isNew));
+  if (error) return mockToDetails(mockProducts.filter((p) => p.isNew));
   return (data ?? []) as ProductWithDetails[];
 }
 
 /** Fetch best sellers */
 export async function getBestSellers(): Promise<ProductWithDetails[]> {
-  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter(p => p.isBestSeller));
+  if (!isSupabaseConfigured) return mockToDetails(mockProducts.filter((p) => p.isBestSeller));
 
   const { data, error } = await supabase
-    .from('products')
-    .select('*, images:product_images(*), variants:product_variants(*)')
-    .eq('status', 'published')
-    .eq('is_best_seller', true)
-    .order('created_at', { ascending: false });
+    .from("products")
+    .select("*, images:product_images(*), variants:product_variants(*)")
+    .eq("status", "published")
+    .eq("is_best_seller", true)
+    .order("created_at", { ascending: false });
 
-  if (error) return mockToDetails(mockProducts.filter(p => p.isBestSeller));
+  if (error) return mockToDetails(mockProducts.filter((p) => p.isBestSeller));
   return (data ?? []) as ProductWithDetails[];
 }
 
 /** Get variant stock for a product */
-export async function getVariantStock(productId: string, size: string, color: string): Promise<number> {
+export async function getVariantStock(
+  productId: string,
+  size: string,
+  color: string,
+): Promise<number> {
   if (!isSupabaseConfigured) return 99; // mock fallback
 
   const { data, error } = await supabase
-    .from('product_variants')
-    .select('stock')
-    .eq('product_id', productId)
-    .eq('size', size)
-    .eq('color', color)
-    .eq('is_active', true)
+    .from("product_variants")
+    .select("stock")
+    .eq("product_id", productId)
+    .eq("size", size)
+    .eq("color", color)
+    .eq("is_active", true)
     .single();
 
   if (error || !data) return 0;
@@ -130,12 +144,12 @@ export async function adminGetAllProducts(): Promise<ProductWithDetails[]> {
   if (!isSupabaseConfigured) return mockToDetails(mockProducts);
 
   const { data, error } = await supabase
-    .from('products')
-    .select('*, images:product_images(*), variants:product_variants(*), category:categories(*)')
-    .order('created_at', { ascending: false });
+    .from("products")
+    .select("*, images:product_images(*), variants:product_variants(*), category:categories(*)")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[products] adminGetAllProducts error:', error);
+    console.error("[products] adminGetAllProducts error:", error);
     return mockToDetails(mockProducts);
   }
 
@@ -144,38 +158,43 @@ export async function adminGetAllProducts(): Promise<ProductWithDetails[]> {
 
 /** Create a new product */
 export async function adminCreateProduct(
-  product: Omit<DbProduct, 'id' | 'created_at' | 'updated_at'>
+  product: Omit<DbProduct, "id" | "created_at" | "updated_at">,
 ): Promise<DbProduct | null> {
-  const { data, error } = await supabase
-    .from('products')
-    .insert(product)
-    .select()
-    .single();
+  const { data, error } = await supabase.from("products").insert(product).select().single();
 
-  if (error) { console.error('[products] create error:', error); return null; }
+  if (error) {
+    console.error("[products] create error:", error);
+    return null;
+  }
   return data;
 }
 
 /** Update a product */
 export async function adminUpdateProduct(
   id: string,
-  patch: Partial<DbProduct>
+  patch: Partial<DbProduct>,
 ): Promise<DbProduct | null> {
   const { data, error } = await supabase
-    .from('products')
+    .from("products")
     .update(patch)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 
-  if (error) { console.error('[products] update error:', error); return null; }
+  if (error) {
+    console.error("[products] update error:", error);
+    return null;
+  }
   return data;
 }
 
 /** Delete a product */
 export async function adminDeleteProduct(id: string): Promise<boolean> {
-  const { error } = await supabase.from('products').delete().eq('id', id);
-  if (error) { console.error('[products] delete error:', error); return false; }
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) {
+    console.error("[products] delete error:", error);
+    return false;
+  }
   return true;
 }
 
@@ -195,7 +214,7 @@ function mockToDetail(m: MockProduct): ProductWithDetails {
     fabric: m.fabric,
     occasion: m.occasion ?? null,
     care_instructions: null,
-    status: m.status.toLowerCase() as 'draft' | 'published' | 'archived',
+    status: m.status.toLowerCase() as "draft" | "published" | "archived",
     is_featured: m.featured ?? false,
     is_new_arrival: m.isNew ?? false,
     is_best_seller: m.isBestSeller ?? false,
@@ -212,8 +231,8 @@ function mockToDetail(m: MockProduct): ProductWithDetails {
       is_primary: i === 0,
       created_at: m.createdAt ?? new Date().toISOString(),
     })),
-    variants: m.sizes.flatMap(size =>
-      m.colors.map(color => ({
+    variants: m.sizes.flatMap((size) =>
+      m.colors.map((color) => ({
         id: `${m.id}-${size}-${color.name}`,
         product_id: m.id,
         size,
@@ -223,7 +242,7 @@ function mockToDetail(m: MockProduct): ProductWithDetails {
         price_override: null,
         is_active: true,
         created_at: m.createdAt ?? new Date().toISOString(),
-      }))
+      })),
     ),
   };
 }

@@ -3,15 +3,7 @@ import { useShop } from "@/store/shop";
 import { products, categories } from "@/data/mock";
 import { taka } from "@/lib/format";
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Search,
-  X,
-  TrendingUp,
-  Clock,
-  Sparkles,
-  ArrowUpRight,
-  CornerDownLeft,
-} from "lucide-react";
+import { Search, X, TrendingUp, Clock, Sparkles, ArrowUpRight, CornerDownLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const RECENTS_KEY = "nongor:recent-searches";
@@ -64,7 +56,7 @@ export function SearchDialog({ open, onOpenChange }: Props) {
 
   const results = useMemo(() => {
     const term = q.trim().toLowerCase();
-    let r = products.filter((p) => {
+    const r = products.filter((p) => {
       if (cat && !p.collection.includes(cat) && p.category !== cat) return false;
       if (size && !p.sizes.includes(size)) return false;
       if (!term) return true;
@@ -94,7 +86,10 @@ export function SearchDialog({ open, onOpenChange }: Props) {
   const pushRecent = (term: string) => {
     const trimmed = term.trim();
     if (!trimmed) return;
-    const next = [trimmed, ...recents.filter((r) => r.toLowerCase() !== trimmed.toLowerCase())].slice(0, 6);
+    const next = [
+      trimmed,
+      ...recents.filter((r) => r.toLowerCase() !== trimmed.toLowerCase()),
+    ].slice(0, 6);
     setRecents(next);
     try {
       localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
@@ -186,7 +181,11 @@ export function SearchDialog({ open, onOpenChange }: Props) {
           {categories
             .filter((c) => c.status === "Active")
             .map((c) => (
-              <Chip key={c.id} active={cat === c.name} onClick={() => setCat(cat === c.name ? null : c.name)}>
+              <Chip
+                key={c.id}
+                active={cat === c.name}
+                onClick={() => setCat(cat === c.name ? null : c.name)}
+              >
                 {c.name}
               </Chip>
             ))}
@@ -205,10 +204,7 @@ export function SearchDialog({ open, onOpenChange }: Props) {
           {/* Empty state */}
           {!q && !cat && !size && (
             <div className="p-5 grid sm:grid-cols-2 gap-6">
-              <Section
-                title="Trending"
-                icon={<TrendingUp className="h-3.5 w-3.5 text-gold" />}
-              >
+              <Section title="Trending" icon={<TrendingUp className="h-3.5 w-3.5 text-gold" />}>
                 <div className="flex flex-wrap gap-2">
                   {trending.map((t) => (
                     <button
@@ -226,7 +222,10 @@ export function SearchDialog({ open, onOpenChange }: Props) {
                 icon={<Clock className="h-3.5 w-3.5 text-muted-foreground" />}
                 action={
                   recents.length > 0 ? (
-                    <button onClick={clearRecents} className="text-[11px] text-muted-foreground hover:text-maroon">
+                    <button
+                      onClick={clearRecents}
+                      className="text-[11px] text-muted-foreground hover:text-maroon"
+                    >
                       Clear
                     </button>
                   ) : null
@@ -275,8 +274,12 @@ export function SearchDialog({ open, onOpenChange }: Props) {
                               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                           </div>
-                          <div className="mt-2 text-xs font-medium line-clamp-1 group-hover:text-maroon">{p.name}</div>
-                          <div className="text-[11px] text-maroon">{taka(p.discountPrice ?? p.price)}</div>
+                          <div className="mt-2 text-xs font-medium line-clamp-1 group-hover:text-maroon">
+                            {p.name}
+                          </div>
+                          <div className="text-[11px] text-maroon">
+                            {taka(p.discountPrice ?? p.price)}
+                          </div>
                         </button>
                       ))}
                   </div>
@@ -288,7 +291,9 @@ export function SearchDialog({ open, onOpenChange }: Props) {
           {/* Suggestions row */}
           {q && suggestions.length > 0 && (
             <div className="px-5 pt-4">
-              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">Suggestions</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                Suggestions
+              </div>
               <div className="flex flex-wrap gap-2">
                 {suggestions.map((s) => (
                   <button
@@ -320,7 +325,9 @@ export function SearchDialog({ open, onOpenChange }: Props) {
               {results.length === 0 ? (
                 <div className="text-center py-10">
                   <div className="font-display text-lg text-maroon">No pieces matched</div>
-                  <p className="text-xs text-muted-foreground mt-1">Try a different colour, fabric or size.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Try a different colour, fabric or size.
+                  </p>
                 </div>
               ) : (
                 <ul className="divide-y divide-hairline/70">
@@ -455,7 +462,10 @@ function highlight(text: string, query: string) {
 }
 
 function escapeHtml(s: string) {
-  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+  return s.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
+  );
 }
 function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -468,7 +478,11 @@ export function useSearchShortcut(onTrigger: () => void) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         onTrigger();
-      } else if (e.key === "/" && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+      } else if (
+        e.key === "/" &&
+        document.activeElement?.tagName !== "INPUT" &&
+        document.activeElement?.tagName !== "TEXTAREA"
+      ) {
         e.preventDefault();
         onTrigger();
       }

@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Heart, Truck, ShieldCheck, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Heart,
+  Truck,
+  ShieldCheck,
+  Scissors,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { testimonials } from "@/data/mock";
 import { useNewArrivals, useBestSellers, useAllProducts } from "@/hooks/useProducts";
 import { useActiveCategories } from "@/hooks/useCategories";
@@ -11,7 +20,11 @@ export const Route = createFileRoute("/_shop/")({
   head: () => ({
     meta: [
       { title: "Nongor — Handmade Bangladeshi Kurti" },
-      { name: "description", content: "Premium handmade kurti, hand-stitched by Bangladeshi artisans. Maroon, antique gold, cultural elegance." },
+      {
+        name: "description",
+        content:
+          "Premium handmade kurti, hand-stitched by Bangladeshi artisans. Maroon, antique gold, cultural elegance.",
+      },
     ],
   }),
   component: Home,
@@ -30,17 +43,20 @@ function Home() {
 
   const heroSlides = [
     {
-      image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80",
+      image:
+        "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=900&q=80",
       label: "Maroon Nakshi Kurti",
       price: "৳2,690",
     },
     {
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
+      image:
+        "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80",
       label: "Golden Mustard Kurti",
       price: "৳2,490",
     },
     {
-      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80",
+      image:
+        "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80",
       label: "Antique Ivory Kurti",
       price: "৳2,890",
     },
@@ -93,27 +109,47 @@ function Home() {
               <Sparkles className="h-3.5 w-3.5 text-gold" /> New Festive Collection · 2025
             </div>
             <h1 className="mt-6 font-display text-4xl md:text-6xl lg:text-7xl leading-[1.05] text-foreground">
-              Handmade<br />
-              <span className="text-maroon italic">Elegance</span> rooted in<br />
+              Handmade
+              <br />
+              <span className="text-maroon italic">Elegance</span> rooted in
+              <br />
               Bangladeshi culture
             </h1>
             <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg leading-relaxed">
-              <span className="font-bengali text-maroon">নোঙর</span> — a boutique of hand-stitched kurti, each piece sewn by women artisans, carrying the soul of Nakshi Kantha craft into modern wear.
+              <span className="font-bengali text-maroon">নোঙর</span> — a boutique of hand-stitched
+              kurti, each piece sewn by women artisans, carrying the soul of Nakshi Kantha craft
+              into modern wear.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/shop" className="group inline-flex items-center gap-2 bg-maroon hover:bg-maroon-deep text-primary-foreground px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide transition shadow-elegant">
-                Shop Collection <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
+              <Link
+                to="/shop"
+                className="group inline-flex items-center gap-2 bg-maroon hover:bg-maroon-deep text-primary-foreground px-7 py-3.5 rounded-full text-sm font-semibold tracking-wide transition shadow-elegant"
+              >
+                Shop Collection{" "}
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition" />
               </Link>
-              <a href="#story" className="inline-flex items-center gap-2 border border-maroon/20 hover:border-maroon px-7 py-3.5 rounded-full text-sm font-semibold text-maroon transition">
+              <a
+                href="#story"
+                className="inline-flex items-center gap-2 border border-maroon/20 hover:border-maroon px-7 py-3.5 rounded-full text-sm font-semibold text-maroon transition"
+              >
                 Explore Nongor
               </a>
             </div>
             <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
-              <div><span className="font-display text-2xl text-maroon">100%</span><div>Handmade</div></div>
+              <div>
+                <span className="font-display text-2xl text-maroon">100%</span>
+                <div>Handmade</div>
+              </div>
               <div className="h-8 w-px bg-border" />
-              <div><span className="font-display text-xl text-maroon">Small-batch</span><div>Production</div></div>
+              <div>
+                <span className="font-display text-xl text-maroon">Small-batch</span>
+                <div>Production</div>
+              </div>
               <div className="h-8 w-px bg-border" />
-              <div><span className="font-display text-2xl text-maroon">★ 4.9</span><div>Customer love</div></div>
+              <div>
+                <span className="font-display text-2xl text-maroon">★ 4.9</span>
+                <div>Customer love</div>
+              </div>
             </div>
           </div>
           <div className="relative">
@@ -130,14 +166,12 @@ function Home() {
                 <div
                   key={idx}
                   className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-                    idx === activeIdx ? "opacity-100 scale-100 z-10" : "opacity-0 scale-105 z-0 pointer-events-none"
+                    idx === activeIdx
+                      ? "opacity-100 scale-100 z-10"
+                      : "opacity-0 scale-105 z-0 pointer-events-none"
                   }`}
                 >
-                  <img
-                    src={slide.image}
-                    alt={slide.label}
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={slide.image} alt={slide.label} className="w-full h-full object-cover" />
                   <div className="absolute bottom-6 left-6 right-6 bg-ivory/90 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 shadow-soft z-20">
                     <img src={logo} alt="" className="h-10 w-10" />
                     <div>
@@ -191,11 +225,17 @@ function Home() {
           {categories.map((c) => (
             <Link key={c.id} to="/shop" className="group block">
               <div className="aspect-square rounded-2xl overflow-hidden bg-cream relative shadow-soft">
-                <img src={c.image} alt={c.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <img
+                  src={c.image}
+                  alt={c.name}
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-maroon/70 via-maroon/10 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4 text-primary-foreground">
                   <div className="font-display text-base md:text-lg">{c.name}</div>
-                  <div className="text-[11px] opacity-80">{c.count > 0 ? `${c.count} pieces` : c.status}</div>
+                  <div className="text-[11px] opacity-80">
+                    {c.count > 0 ? `${c.count} pieces` : c.status}
+                  </div>
                 </div>
               </div>
             </Link>
@@ -207,38 +247,67 @@ function Home() {
       <section className="container-narrow py-10">
         <div className="flex items-end justify-between">
           <SectionHeading eyebrow="Just landed" title="New Arrivals" />
-          <Link to="/shop" className="hidden md:inline-flex items-center gap-1 text-sm text-maroon font-medium hover:gap-2 transition-all">View all <ArrowRight className="h-4 w-4" /></Link>
+          <Link
+            to="/shop"
+            className="hidden md:inline-flex items-center gap-1 text-sm text-maroon font-medium hover:gap-2 transition-all"
+          >
+            View all <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-          {newArrivalsLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse">
-                <div className="aspect-[4/5] bg-cream" />
-                <div className="p-4 space-y-2"><div className="h-4 w-3/4 bg-cream rounded" /><div className="h-3 w-1/2 bg-cream rounded" /></div>
-              </div>
-            ))
-          ) : (
-            newArrivals.map((p) => <ProductCard key={p.id} p={p} />)
-          )}
+          {newArrivalsLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse"
+                >
+                  <div className="aspect-[4/5] bg-cream" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 w-3/4 bg-cream rounded" />
+                    <div className="h-3 w-1/2 bg-cream rounded" />
+                  </div>
+                </div>
+              ))
+            : newArrivals.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
       </section>
 
       {/* STORY */}
-      <section id="story" className="mt-20 bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground relative overflow-hidden">
+      <section
+        id="story"
+        className="mt-20 bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground relative overflow-hidden"
+      >
         <div className="absolute inset-0 pattern-nakshi opacity-10" />
         <div className="container-narrow relative grid lg:grid-cols-2 gap-12 py-16 md:py-24 items-center">
           <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-elegant">
-            <img src="https://images.unsplash.com/photo-1606902965551-dce093cda6e7?auto=format&fit=crop&w=900&q=80" alt="Artisan at work" className="w-full h-full object-cover" />
+            <img
+              src="https://images.unsplash.com/photo-1606902965551-dce093cda6e7?auto=format&fit=crop&w=900&q=80"
+              alt="Artisan at work"
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
-            <div className="inline-block text-gold text-xs uppercase tracking-[0.3em]">Our Craft</div>
-            <h2 className="mt-4 font-display text-4xl md:text-5xl leading-tight">Every stitch carries a story</h2>
+            <div className="inline-block text-gold text-xs uppercase tracking-[0.3em]">
+              Our Craft
+            </div>
+            <h2 className="mt-4 font-display text-4xl md:text-5xl leading-tight">
+              Every stitch carries a story
+            </h2>
             <p className="mt-5 text-primary-foreground/85 leading-relaxed">
-              Inspired by the centuries-old tradition of Nakshi Kantha — the embroidered quilts of rural Bengal — Nongor brings hand craftsmanship into everyday wear. Our artisans, mostly women from rural Bangladesh, sew each kurti by hand in small batches, never in factories.
+              Inspired by the centuries-old tradition of Nakshi Kantha — the embroidered quilts of
+              rural Bengal — Nongor brings hand craftsmanship into everyday wear. Our artisans,
+              mostly women from rural Bangladesh, sew each kurti by hand in small batches, never in
+              factories.
             </p>
             <div className="mt-8 grid grid-cols-2 gap-6">
-              <div><div className="font-display text-2xl text-gold">Slow Craft</div><div className="text-sm text-primary-foreground/70">Crafted with patience</div></div>
-              <div><div className="font-display text-2xl text-gold">Empower</div><div className="text-sm text-primary-foreground/70">Supporting local makers</div></div>
+              <div>
+                <div className="font-display text-2xl text-gold">Slow Craft</div>
+                <div className="text-sm text-primary-foreground/70">Crafted with patience</div>
+              </div>
+              <div>
+                <div className="font-display text-2xl text-gold">Empower</div>
+                <div className="text-sm text-primary-foreground/70">Supporting local makers</div>
+              </div>
             </div>
           </div>
         </div>
@@ -249,13 +318,34 @@ function Home() {
         <SectionHeading eyebrow="The Nongor promise" title="Why choose us" center />
         <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {[
-            { icon: Heart, title: "Handmade with Care", desc: "Sewn one at a time by women artisans" },
-            { icon: Scissors, title: "Premium Fabric", desc: "Selected for comfort and cultural elegance" },
-            { icon: Sparkles, title: "Cultural Design", desc: "Nakshi-inspired motifs, modern fits" },
-            { icon: ShieldCheck, title: "Secure Order", desc: "bKash, Nagad, COD — verified delivery" },
+            {
+              icon: Heart,
+              title: "Handmade with Care",
+              desc: "Sewn one at a time by women artisans",
+            },
+            {
+              icon: Scissors,
+              title: "Premium Fabric",
+              desc: "Selected for comfort and cultural elegance",
+            },
+            {
+              icon: Sparkles,
+              title: "Cultural Design",
+              desc: "Nakshi-inspired motifs, modern fits",
+            },
+            {
+              icon: ShieldCheck,
+              title: "Secure Order",
+              desc: "bKash, Nagad, COD — verified delivery",
+            },
           ].map((f, i) => (
-            <div key={i} className="bg-card rounded-2xl p-6 text-center shadow-soft hover:shadow-elegant transition">
-              <div className="h-12 w-12 mx-auto rounded-full bg-cream grid place-items-center text-maroon"><f.icon className="h-5 w-5" /></div>
+            <div
+              key={i}
+              className="bg-card rounded-2xl p-6 text-center shadow-soft hover:shadow-elegant transition"
+            >
+              <div className="h-12 w-12 mx-auto rounded-full bg-cream grid place-items-center text-maroon">
+                <f.icon className="h-5 w-5" />
+              </div>
               <div className="mt-4 font-display text-lg">{f.title}</div>
               <div className="mt-1 text-xs md:text-sm text-muted-foreground">{f.desc}</div>
             </div>
@@ -267,16 +357,20 @@ function Home() {
       <section className="container-narrow py-10">
         <SectionHeading eyebrow="Loved by many" title="Best Sellers" />
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-          {bestSellersLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse">
-                <div className="aspect-[4/5] bg-cream" />
-                <div className="p-4 space-y-2"><div className="h-4 w-3/4 bg-cream rounded" /><div className="h-3 w-1/2 bg-cream rounded" /></div>
-              </div>
-            ))
-          ) : (
-            bestSellers.map((p) => <ProductCard key={p.id} p={p} />)
-          )}
+          {bestSellersLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse"
+                >
+                  <div className="aspect-[4/5] bg-cream" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 w-3/4 bg-cream rounded" />
+                    <div className="h-3 w-1/2 bg-cream rounded" />
+                  </div>
+                </div>
+              ))
+            : bestSellers.map((p) => <ProductCard key={p.id} p={p} />)}
         </div>
       </section>
 
@@ -301,17 +395,19 @@ function Home() {
       <section className="container-narrow py-10">
         <SectionHeading eyebrow="Follow @nongor.bd" title="From the studio" />
         <div className="mt-8 grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-          {allProducts.length === 0 ? (
-            Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-xl bg-cream animate-pulse" />
-            ))
-          ) : (
-            allProducts.slice(0, 6).map((p) => (
-              <div key={p.id} className="aspect-square rounded-xl overflow-hidden bg-cream">
-                <img src={p.images[0]} alt="" className="w-full h-full object-cover hover:scale-110 transition duration-700" />
-              </div>
-            ))
-          )}
+          {allProducts.length === 0
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-square rounded-xl bg-cream animate-pulse" />
+              ))
+            : allProducts.slice(0, 6).map((p) => (
+                <div key={p.id} className="aspect-square rounded-xl overflow-hidden bg-cream">
+                  <img
+                    src={p.images[0]}
+                    alt=""
+                    className="w-full h-full object-cover hover:scale-110 transition duration-700"
+                  />
+                </div>
+              ))}
         </div>
       </section>
 
@@ -319,11 +415,24 @@ function Home() {
       <section className="container-narrow py-16">
         <div className="relative overflow-hidden rounded-3xl bg-cream pattern-nakshi p-8 md:p-14 text-center">
           <Truck className="h-8 w-8 text-gold mx-auto" />
-          <h3 className="mt-4 font-display text-3xl md:text-4xl text-maroon">Join the Nongor circle</h3>
-          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">Be the first to see new drops and receive 10% off your first order.</p>
-          <form className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder="your@email.com" className="flex-1 px-5 py-3 rounded-full bg-card border border-border focus:border-maroon outline-none text-sm" />
-            <button className="bg-maroon hover:bg-maroon-deep text-primary-foreground px-7 py-3 rounded-full text-sm font-semibold transition">Subscribe</button>
+          <h3 className="mt-4 font-display text-3xl md:text-4xl text-maroon">
+            Join the Nongor circle
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+            Be the first to see new drops and receive 10% off your first order.
+          </p>
+          <form
+            className="mt-6 flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <input
+              type="email"
+              placeholder="your@email.com"
+              className="flex-1 px-5 py-3 rounded-full bg-card border border-border focus:border-maroon outline-none text-sm"
+            />
+            <button className="bg-maroon hover:bg-maroon-deep text-primary-foreground px-7 py-3 rounded-full text-sm font-semibold transition">
+              Subscribe
+            </button>
           </form>
         </div>
       </section>
@@ -331,7 +440,15 @@ function Home() {
   );
 }
 
-function SectionHeading({ eyebrow, title, center }: { eyebrow: string; title: string; center?: boolean }) {
+function SectionHeading({
+  eyebrow,
+  title,
+  center,
+}: {
+  eyebrow: string;
+  title: string;
+  center?: boolean;
+}) {
   return (
     <div className={center ? "text-center" : ""}>
       <div className="text-xs uppercase tracking-[0.3em] text-gold font-medium">{eyebrow}</div>

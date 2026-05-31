@@ -15,9 +15,20 @@ export const Route = createFileRoute("/_shop/order-success")({
   component: Success,
 });
 
+type OrderState = {
+  orderNumber: string;
+  customer: string;
+  phone: string;
+  total: number;
+  payment: string;
+  paymentStatus: string;
+  status: string;
+  date: string;
+};
+
 function Success() {
   const { orderId, phone } = Route.useSearch();
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderState | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,21 +40,23 @@ function Success() {
     trackOrder(orderId, phone)
       .then((res) => {
         if (res.found && res.order) {
-          const o = res.order as any;
+          const o = res.order as Record<string, unknown>;
           setOrder({
-            orderNumber: o.order_number ?? orderId,
-            customer: o.customer_name ?? "Customer",
+            orderNumber: (o.order_number as string) ?? orderId,
+            customer: (o.customer_name as string) ?? "Customer",
             phone: phone,
-            total: o.total_amount ?? 0,
-            payment: o.payment_method?.toUpperCase() ?? "COD",
+            total: (o.total_amount as number) ?? 0,
+            payment: ((o.payment_method as string) ?? "COD").toUpperCase(),
             paymentStatus:
               o.payment_status === "verification_needed"
                 ? "Verification Needed"
                 : o.payment_status === "paid"
                   ? "Paid"
                   : "Pending",
-            status: o.order_status ?? "pending",
-            date: o.created_at ? new Date(o.created_at).toLocaleDateString("en-BD") : new Date().toLocaleDateString("en-BD"),
+            status: (o.order_status as string) ?? "pending",
+            date: o.created_at
+              ? new Date(o.created_at as string).toLocaleDateString("en-BD")
+              : new Date().toLocaleDateString("en-BD"),
           });
         }
       })
@@ -58,7 +71,9 @@ function Success() {
           <CheckCircle2 className="h-10 w-10 text-green-700" />
         </div>
         <h1 className="mt-6 font-display text-4xl md:text-5xl text-maroon">Order Confirmed</h1>
-        <p className="mt-3 text-muted-foreground">Thank you — your handmade piece is being prepared with care.</p>
+        <p className="mt-3 text-muted-foreground">
+          Thank you — your handmade piece is being prepared with care.
+        </p>
       </div>
 
       <div className="mt-10 bg-card rounded-2xl p-6 md:p-8 shadow-soft relative overflow-hidden">
@@ -70,11 +85,15 @@ function Success() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
           <div>
             <div className="text-xs text-muted-foreground">Order Number</div>
-            <div className="font-display text-lg text-maroon">{order?.orderNumber ?? orderId ?? "—"}</div>
+            <div className="font-display text-lg text-maroon">
+              {order?.orderNumber ?? orderId ?? "—"}
+            </div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">Payment</div>
-            <div className="font-medium">{order ? `${order.payment} · ${order.paymentStatus}` : "Pending verification"}</div>
+            <div className="font-medium">
+              {order ? `${order.payment} · ${order.paymentStatus}` : "Pending verification"}
+            </div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">Delivery</div>
@@ -93,7 +112,9 @@ function Success() {
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Total</div>
-              <div className="font-display text-lg text-maroon font-semibold">{taka(order.total)}</div>
+              <div className="font-display text-lg text-maroon font-semibold">
+                {taka(order.total)}
+              </div>
             </div>
           </div>
         )}
@@ -104,7 +125,10 @@ function Success() {
         )}
         <div className="mt-6 pt-6 border-t border-border flex items-center gap-3">
           <Package className="h-5 w-5 text-gold" />
-          <div className="text-sm">We'll send you SMS updates on <span className="font-semibold">{order?.phone ?? phone ?? "your phone"}</span></div>
+          <div className="text-sm">
+            We'll send you SMS updates on{" "}
+            <span className="font-semibold">{order?.phone ?? phone ?? "your phone"}</span>
+          </div>
         </div>
       </div>
 
@@ -116,7 +140,10 @@ function Success() {
         >
           Track Order
         </Link>
-        <Link to="/shop" className="border border-border rounded-full px-7 py-3 text-sm font-semibold text-center inline-flex items-center justify-center gap-1">
+        <Link
+          to="/shop"
+          className="border border-border rounded-full px-7 py-3 text-sm font-semibold text-center inline-flex items-center justify-center gap-1"
+        >
           Continue Shopping <ArrowRight className="h-4 w-4" />
         </Link>
       </div>

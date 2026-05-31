@@ -28,18 +28,28 @@ function Page() {
   };
 
   const handleTrack = (orderId: string, courierName: string, trackingCode: string) => {
-    toast.info(`Mock Tracking details for ${orderId}: Dispatched via ${courierName} (${trackingCode})`);
+    toast.info(
+      `Mock Tracking details for ${orderId}: Dispatched via ${courierName} (${trackingCode})`,
+    );
   };
 
   return (
     <div>
-      <PageHeader title="Courier & Delivery" subtitle="Manage courier partners, zones and tracking" />
+      <PageHeader
+        title="Courier & Delivery"
+        subtitle="Manage courier partners, zones and tracking"
+      />
       <div className="grid md:grid-cols-2 gap-4 mb-6">
         <div className="bg-card rounded-xl p-5 border border-border/60">
-          <h3 className="font-display text-lg mb-3 flex items-center gap-2"><Truck className="h-4 w-4 text-maroon" /> Courier Partners</h3>
+          <h3 className="font-display text-lg mb-3 flex items-center gap-2">
+            <Truck className="h-4 w-4 text-maroon" /> Courier Partners
+          </h3>
           <div className="grid grid-cols-2 gap-2">
             {partners.map((p) => (
-              <div key={p} className="bg-secondary rounded-lg p-3 flex items-center justify-between">
+              <div
+                key={p}
+                className="bg-secondary rounded-lg p-3 flex items-center justify-between"
+              >
                 <span className="font-medium text-sm">{p}</span>
                 <button
                   onClick={() => handleBook(p)}
@@ -50,7 +60,9 @@ function Page() {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground mt-3">API integration coming soon — UI-ready.</p>
+          <p className="text-xs text-muted-foreground mt-3">
+            API integration coming soon — UI-ready.
+          </p>
         </div>
         <div className="bg-card rounded-xl p-5 border border-border/60">
           <h3 className="font-display text-lg mb-3">Delivery Zones</h3>
@@ -90,7 +102,9 @@ function Page() {
                     {o.courier}
                   </span>
                 </td>
-                <td className="p-3 font-mono text-xs text-foreground font-semibold">{o.trackingId}</td>
+                <td className="p-3 font-mono text-xs text-foreground font-semibold">
+                  {o.trackingId}
+                </td>
                 <td className="p-3 text-right">
                   <button
                     onClick={() => handleTrack(o.id, o.courier || "", o.trackingId || "")}

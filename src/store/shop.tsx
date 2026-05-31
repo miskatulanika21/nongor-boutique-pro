@@ -34,11 +34,20 @@ const Ctx = createContext<ShopState | null>(null);
 const isBrowser = typeof window !== "undefined";
 const load = <T,>(k: string, fallback: T): T => {
   if (!isBrowser) return fallback;
-  try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+  try {
+    const v = localStorage.getItem(k);
+    return v ? JSON.parse(v) : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
 /** Get stock — async version for Supabase, sync fallback for mock */
-export async function getProductStockAsync(productId: string, size?: string, color?: string): Promise<number> {
+export async function getProductStockAsync(
+  productId: string,
+  size?: string,
+  color?: string,
+): Promise<number> {
   if (isSupabaseConfigured && size && color) {
     return getSupabaseVariantStock(productId, size, color);
   }
@@ -50,8 +59,8 @@ export function getProductStockSync(productId: string, size?: string, color?: st
   if (typeof window === "undefined") return 99; // SSR fallback
   try {
     const v = localStorage.getItem("nongor_admin_products");
-    const productsList = v ? JSON.parse(v) : defaultProducts;
-    const product = productsList.find((p: any) => p.id === productId);
+    const productsList: Product[] = v ? JSON.parse(v) : defaultProducts;
+    const product = productsList.find((p) => p.id === productId);
     if (!product) return 0;
 
     // Support variant stock key structure e.g. "M-Maroon"
@@ -73,8 +82,12 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>(() => load("nongor_cart", []));
   const [wishlist, setWishlist] = useState<string[]>(() => load("nongor_wishlist", []));
 
-  useEffect(() => { if (isBrowser) localStorage.setItem("nongor_cart", JSON.stringify(cart)); }, [cart]);
-  useEffect(() => { if (isBrowser) localStorage.setItem("nongor_wishlist", JSON.stringify(wishlist)); }, [wishlist]);
+  useEffect(() => {
+    if (isBrowser) localStorage.setItem("nongor_cart", JSON.stringify(cart));
+  }, [cart]);
+  useEffect(() => {
+    if (isBrowser) localStorage.setItem("nongor_wishlist", JSON.stringify(wishlist));
+  }, [wishlist]);
 
   const addToCart = (item: CartItem) => {
     const maxStock = getProductStock(item.productId, item.size, item.color);
@@ -84,7 +97,9 @@ export function ShopProvider({ children }: { children: ReactNode }) {
     }
 
     setCart((prev) => {
-      const idx = prev.findIndex((p) => p.productId === item.productId && p.size === item.size && p.color === item.color);
+      const idx = prev.findIndex(
+        (p) => p.productId === item.productId && p.size === item.size && p.color === item.color,
+      );
       if (idx >= 0) {
         const currentQty = prev[idx].qty;
         const requestedQty = currentQty + item.qty;
@@ -137,7 +152,19 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   const cartTotal = cart.reduce((s, i) => s + i.qty * i.price, 0);
 
   return (
-    <Ctx.Provider value={{ cart, wishlist, addToCart, removeFromCart, updateQty, clearCart, toggleWishlist, cartCount, cartTotal }}>
+    <Ctx.Provider
+      value={{
+        cart,
+        wishlist,
+        addToCart,
+        removeFromCart,
+        updateQty,
+        clearCart,
+        toggleWishlist,
+        cartCount,
+        cartTotal,
+      }}
+    >
       {children}
     </Ctx.Provider>
   );
@@ -150,9 +177,9 @@ export const useShop = () => {
 };
 
 export const quickAddToCart = (
-  shop: any,
+  shop: ShopState,
   p: Product,
-  opts?: { size?: string; color?: string; qty?: number }
+  opts?: { size?: string; color?: string; qty?: number },
 ) =>
   shop.addToCart({
     productId: p.id,

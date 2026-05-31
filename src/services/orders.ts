@@ -1,14 +1,14 @@
 /**
  * Orders service — Supabase RPC for order creation, admin management
  */
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { DbOrder, OrderItem } from '@/lib/database.types';
-import type { Json } from '@/lib/database.types';
-import { products as mockProducts, orders as mockOrders } from '@/data/mock';
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import type { DbOrder, OrderItem } from "@/lib/database.types";
+import type { Json } from "@/lib/database.types";
+import { products as mockProducts, orders as mockOrders } from "@/data/mock";
 
 // A helper helper to normalize phone numbers for comparison
 function normalizePhone(p: string): string {
-  return p.replace(/[-+\s()]/g, '');
+  return p.replace(/[-+\s()]/g, "");
 }
 
 // ─── Types ─────────────────────────────────────────────────
@@ -52,34 +52,35 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
   orderId?: string;
   error?: string;
 }> {
-  const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-  const hasMockIds = payload.items.some(i => !isUuid(i.productId));
+  const isUuid = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const hasMockIds = payload.items.some((i) => !isUuid(i.productId));
 
   if (!isSupabaseConfigured || hasMockIds) {
     // Generate a random order number like NGR-1043
     const orderNumber = `NGR-${Math.floor(1043 + Math.random() * 9000)}`;
     const orderId = `mock-order-${Math.floor(100000 + Math.random() * 900000)}`;
-    
+
     // Save order to localStorage so it can be queried/tracked later
     try {
-      if (typeof window !== 'undefined') {
-        const existing = localStorage.getItem('nongor_mock_orders');
+      if (typeof window !== "undefined") {
+        const existing = localStorage.getItem("nongor_mock_orders");
         const list = existing ? JSON.parse(existing) : [];
         list.push({
           id: orderId,
           order_number: orderNumber,
           customer_name: payload.customerName,
           customer_phone: payload.customerPhone,
-          order_status: 'pending',
+          order_status: "pending",
           payment_method: payload.paymentMethod.toLowerCase(),
-          payment_status: 'pending',
+          payment_status: "pending",
           total_amount: payload.totalAmount,
           created_at: new Date().toISOString(),
         });
-        localStorage.setItem('nongor_mock_orders', JSON.stringify(list));
+        localStorage.setItem("nongor_mock_orders", JSON.stringify(list));
       }
     } catch (e) {
-      console.warn('Failed to save mock order to localStorage:', e);
+      console.warn("Failed to save mock order to localStorage:", e);
     }
 
     return {
@@ -89,7 +90,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
     };
   }
 
-  const items: Json = payload.items.map(i => ({
+  const items: Json = payload.items.map((i) => ({
     product_id: i.productId,
     variant_id: i.variantId ?? null,
     product_name: i.productName,
@@ -99,7 +100,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
     unit_price: i.unitPrice,
   }));
 
-  const { data, error } = await supabase.rpc('create_order_with_items', {
+  const { data, error } = await supabase.rpc("create_order_with_items", {
     p_customer_name: payload.customerName,
     p_customer_phone: payload.customerPhone,
     p_customer_email: payload.customerEmail,
@@ -118,7 +119,7 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
   });
 
   if (error) {
-    console.error('[orders] createOrder error:', error);
+    console.error("[orders] createOrder error:", error);
     return { success: false, error: error.message };
   }
 
@@ -131,29 +132,36 @@ export async function createOrder(payload: CreateOrderPayload): Promise<{
 }
 
 /** Track order by order number + phone (public, no auth needed) */
-export async function trackOrder(orderNumber: string, phone: string): Promise<{
+export async function trackOrder(
+  orderNumber: string,
+  phone: string,
+): Promise<{
   found: boolean;
   order?: Record<string, unknown>;
 }> {
   const normPhoneInput = normalizePhone(phone);
 
   // Check custom mock orders in localStorage
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     try {
-      const existing = localStorage.getItem('nongor_mock_orders');
-      const list = existing ? JSON.parse(existing) : [];
-      const foundLocal = list.find((o: any) => o.order_number === orderNumber && normalizePhone(o.customer_phone) === normPhoneInput);
+      const existing = localStorage.getItem("nongor_mock_orders");
+      const list: Record<string, unknown>[] = existing ? JSON.parse(existing) : [];
+      const foundLocal = list.find(
+        (o) =>
+          o.order_number === orderNumber &&
+          normalizePhone((o.customer_phone as string) ?? "") === normPhoneInput,
+      );
       if (foundLocal) {
         return { found: true, order: foundLocal };
       }
     } catch (e) {
-      console.warn('Failed to read mock orders from localStorage:', e);
+      console.warn("Failed to read mock orders from localStorage:", e);
     }
   }
 
   // Fallback to default mock list in mock.ts
   const foundMock = mockOrders.find(
-    o => o.id === orderNumber && normalizePhone(o.phone) === normPhoneInput
+    (o) => o.id === orderNumber && normalizePhone(o.phone) === normPhoneInput,
   );
   if (foundMock) {
     return {
@@ -170,19 +178,19 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<{
         created_at: new Date().toISOString(),
         courier_name: foundMock.courier,
         tracking_id: foundMock.trackingId,
-      }
+      },
     };
   }
 
   if (!isSupabaseConfigured) return { found: false };
 
-  const { data, error } = await supabase.rpc('track_order', {
+  const { data, error } = await supabase.rpc("track_order", {
     p_order_number: orderNumber,
     p_phone: phone,
   });
 
   if (error) {
-    console.error('[orders] trackOrder error:', error);
+    console.error("[orders] trackOrder error:", error);
     return { found: false };
   }
 
@@ -196,12 +204,12 @@ export async function getMyOrders(): Promise<OrderWithItems[]> {
   if (!isSupabaseConfigured) return [];
 
   const { data, error } = await supabase
-    .from('orders')
-    .select('*, items:order_items(*)')
-    .order('created_at', { ascending: false });
+    .from("orders")
+    .select("*, items:order_items(*)")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[orders] getMyOrders error:', error);
+    console.error("[orders] getMyOrders error:", error);
     return [];
   }
 
@@ -215,43 +223,46 @@ export async function adminGetAllOrders(): Promise<OrderWithItems[]> {
   if (!isSupabaseConfigured) return [];
 
   const { data, error } = await supabase
-    .from('orders')
-    .select('*, items:order_items(*), address:addresses(district), payments:payments(trx_id)')
-    .order('created_at', { ascending: false });
+    .from("orders")
+    .select("*, items:order_items(*), address:addresses(district), payments:payments(trx_id)")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[orders] adminGetAllOrders error:', error);
+    console.error("[orders] adminGetAllOrders error:", error);
     return [];
   }
 
-  return (data ?? []) as any;
+  return (data ?? []) as unknown as OrderWithItems[];
 }
 
 /** Update order status (admin) */
 export async function adminUpdateOrderStatus(
   orderId: string,
-  status: DbOrder['order_status']
+  status: DbOrder["order_status"],
 ): Promise<boolean> {
   const { error } = await supabase
-    .from('orders')
+    .from("orders")
     .update({ order_status: status })
-    .eq('id', orderId);
+    .eq("id", orderId);
 
-  if (error) { console.error('[orders] updateStatus error:', error); return false; }
+  if (error) {
+    console.error("[orders] updateStatus error:", error);
+    return false;
+  }
   return true;
 }
 
 /** Update order fields (admin) */
 export async function adminUpdateOrder(
   orderId: string,
-  patch: Partial<Pick<DbOrder, 'order_status' | 'courier_name' | 'tracking_id' | 'admin_note'>>
+  patch: Partial<Pick<DbOrder, "order_status" | "courier_name" | "tracking_id" | "admin_note">>,
 ): Promise<boolean> {
-  const { error } = await supabase
-    .from('orders')
-    .update(patch)
-    .eq('id', orderId);
+  const { error } = await supabase.from("orders").update(patch).eq("id", orderId);
 
-  if (error) { console.error('[orders] adminUpdateOrder error:', error); return false; }
+  if (error) {
+    console.error("[orders] adminUpdateOrder error:", error);
+    return false;
+  }
   return true;
 }
 
@@ -269,14 +280,12 @@ export async function adminGetOrderStats(): Promise<{
   const today = new Date().toISOString().slice(0, 10);
 
   const [allOrders, pendingOrders, todayOrders] = await Promise.all([
-    supabase.from('orders').select('total_amount', { count: 'exact' }),
-    supabase.from('orders').select('id', { count: 'exact' }).eq('order_status', 'pending'),
-    supabase.from('orders').select('id', { count: 'exact' }).gte('created_at', today),
+    supabase.from("orders").select("total_amount", { count: "exact" }),
+    supabase.from("orders").select("id", { count: "exact" }).eq("order_status", "pending"),
+    supabase.from("orders").select("id", { count: "exact" }).gte("created_at", today),
   ]);
 
-  const totalRevenue = (allOrders.data ?? []).reduce(
-    (sum, o) => sum + (o.total_amount ?? 0), 0
-  );
+  const totalRevenue = (allOrders.data ?? []).reduce((sum, o) => sum + (o.total_amount ?? 0), 0);
 
   return {
     totalOrders: allOrders.count ?? 0,

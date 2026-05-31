@@ -5,9 +5,16 @@ export const Route = createFileRoute("/_shop/about")({
   head: () => ({
     meta: [
       { title: "About Nongor — Handmade in Bangladesh" },
-      { name: "description", content: "Nongor — নোঙর — is a boutique of hand-stitched kurti, sewn one piece at a time by women artisans across rural Bangladesh." },
+      {
+        name: "description",
+        content:
+          "Nongor — নোঙর — is a boutique of hand-stitched kurti, sewn one piece at a time by women artisans across rural Bangladesh.",
+      },
       { property: "og:title", content: "About Nongor — Handmade in Bangladesh" },
-      { property: "og:description", content: "A boutique brand carrying the soul of Nakshi Kantha into modern wear." },
+      {
+        property: "og:description",
+        content: "A boutique brand carrying the soul of Nakshi Kantha into modern wear.",
+      },
     ],
   }),
   component: About,
@@ -28,7 +35,8 @@ function About() {
             stitched into every thread
           </h1>
           <p className="mt-6 max-w-2xl mx-auto text-base md:text-lg text-muted-foreground leading-relaxed">
-            <span className="font-bengali text-maroon">নোঙর</span> means anchor — a quiet promise to hold on to craft, to women makers, and to the soft rhythm of slow fashion.
+            <span className="font-bengali text-maroon">নোঙর</span> means anchor — a quiet promise to
+            hold on to craft, to women makers, and to the soft rhythm of slow fashion.
           </p>
         </div>
       </section>
@@ -46,13 +54,19 @@ function About() {
           </div>
         </div>
         <div>
-          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">A note from the founder</div>
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">
+            A note from the founder
+          </div>
           <h2 className="mt-3 font-display text-3xl md:text-5xl leading-tight">Where it began</h2>
           <p className="mt-5 text-foreground/85 leading-relaxed">
-            Nongor was born from a small studio in Dhaka, where a handful of women sat under afternoon light — needles in hand, stories in their stitches. We were never interested in mass production. We wanted to make clothes the old way: slowly, carefully, and with the people who keep this craft alive.
+            Nongor was born from a small studio in Dhaka, where a handful of women sat under
+            afternoon light — needles in hand, stories in their stitches. We were never interested
+            in mass production. We wanted to make clothes the old way: slowly, carefully, and with
+            the people who keep this craft alive.
           </p>
           <p className="mt-4 text-foreground/85 leading-relaxed">
-            Today, every Nongor kurti is still sewn by hand. No factories. No shortcuts. Just thread, fabric, and the quiet patience of women who treat each piece as their own.
+            Today, every Nongor kurti is still sewn by hand. No factories. No shortcuts. Just
+            thread, fabric, and the quiet patience of women who treat each piece as their own.
           </p>
           <div className="mt-8 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-cream grid place-items-center text-maroon">
@@ -60,7 +74,9 @@ function About() {
             </div>
             <div>
               <div className="font-display text-lg">Tasnim Rahman</div>
-              <div className="text-xs text-muted-foreground uppercase tracking-[0.2em]">Founder · Nongor</div>
+              <div className="text-xs text-muted-foreground uppercase tracking-[0.2em]">
+                Founder · Nongor
+              </div>
             </div>
           </div>
         </div>
@@ -70,17 +86,38 @@ function About() {
       <section className="bg-cream/60 border-y border-hairline">
         <div className="container-narrow py-16 md:py-20">
           <div className="text-center">
-            <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">What we hold close</div>
+            <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">
+              What we hold close
+            </div>
             <h2 className="mt-3 font-display text-3xl md:text-4xl">Our values</h2>
           </div>
           <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { icon: Scissors, title: "Hand-stitched", desc: "Every kurti is sewn one piece at a time, never machine-rushed." },
-              { icon: Users, title: "Women-led craft", desc: "We work with women artisans across rural Bangladesh." },
-              { icon: Leaf, title: "Small batches", desc: "We make a few of each piece — no overproduction, no waste." },
-              { icon: ShieldCheck, title: "Honest pricing", desc: "Fair to the maker, fair to you — no inflated boutique markups." },
+              {
+                icon: Scissors,
+                title: "Hand-stitched",
+                desc: "Every kurti is sewn one piece at a time, never machine-rushed.",
+              },
+              {
+                icon: Users,
+                title: "Women-led craft",
+                desc: "We work with women artisans across rural Bangladesh.",
+              },
+              {
+                icon: Leaf,
+                title: "Small batches",
+                desc: "We make a few of each piece — no overproduction, no waste.",
+              },
+              {
+                icon: ShieldCheck,
+                title: "Honest pricing",
+                desc: "Fair to the maker, fair to you — no inflated boutique markups.",
+              },
             ].map((v) => (
-              <div key={v.title} className="bg-ivory rounded-2xl p-7 shadow-soft hover:shadow-elegant transition border border-hairline/60">
+              <div
+                key={v.title}
+                className="bg-ivory rounded-2xl p-7 shadow-soft hover:shadow-elegant transition border border-hairline/60"
+              >
                 <div className="h-12 w-12 rounded-full bg-cream grid place-items-center text-maroon">
                   <v.icon className="h-5 w-5" />
                 </div>
@@ -95,14 +132,28 @@ function About() {
       {/* PROCESS */}
       <section className="container-narrow py-16 md:py-24">
         <div className="text-center">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">From thread to thread</div>
+          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">
+            From thread to thread
+          </div>
           <h2 className="mt-3 font-display text-3xl md:text-4xl">How a Nongor piece is made</h2>
         </div>
         <div className="mt-12 grid md:grid-cols-3 gap-6">
           {[
-            { step: "01", title: "Fabric sourcing", desc: "We choose breathable cotton, slubby khadi and soft handloom — woven in Bangladeshi mills." },
-            { step: "02", title: "Hand embroidery", desc: "Motifs inspired by Nakshi Kantha are stitched by hand over days, sometimes weeks." },
-            { step: "03", title: "Final finishing", desc: "Each piece is checked, pressed and packed in our Dhaka studio before it ships to you." },
+            {
+              step: "01",
+              title: "Fabric sourcing",
+              desc: "We choose breathable cotton, slubby khadi and soft handloom — woven in Bangladeshi mills.",
+            },
+            {
+              step: "02",
+              title: "Hand embroidery",
+              desc: "Motifs inspired by Nakshi Kantha are stitched by hand over days, sometimes weeks.",
+            },
+            {
+              step: "03",
+              title: "Final finishing",
+              desc: "Each piece is checked, pressed and packed in our Dhaka studio before it ships to you.",
+            },
           ].map((s) => (
             <div key={s.step} className="relative rounded-2xl border border-hairline bg-card p-7">
               <div className="font-display text-5xl text-gold/80">{s.step}</div>

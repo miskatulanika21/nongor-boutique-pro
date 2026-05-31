@@ -38,16 +38,28 @@ function Page() {
       <PageHeader title="Inventory" subtitle="Stock and variant overview" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         <StatCard label="Total SKUs" value={String(products.length)} />
-        <StatCard label="Low Stock" value={String(low.length)} accent={low.length > 0 ? "warn" : "good"} />
-        <StatCard label="Out of Stock" value={String(outOfStockCount)} accent={outOfStockCount > 0 ? "warn" : "good"} />
+        <StatCard
+          label="Low Stock"
+          value={String(low.length)}
+          accent={low.length > 0 ? "warn" : "good"}
+        />
+        <StatCard
+          label="Out of Stock"
+          value={String(outOfStockCount)}
+          accent={outOfStockCount > 0 ? "warn" : "good"}
+        />
         <StatCard label="Avg Stock" value={String(avgStock)} />
       </div>
       {low.length > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
           <AlertTriangle className="h-5 w-5 text-amber-700 mt-0.5" />
           <div>
-            <div className="font-semibold text-amber-900 text-sm">{low.length} products running low</div>
-            <div className="text-xs text-amber-800 mt-0.5">Consider updating stock level or restocking soon.</div>
+            <div className="font-semibold text-amber-900 text-sm">
+              {low.length} products running low
+            </div>
+            <div className="text-xs text-amber-800 mt-0.5">
+              Consider updating stock level or restocking soon.
+            </div>
           </div>
         </div>
       )}
@@ -93,7 +105,9 @@ function Page() {
                       autoFocus
                     />
                   ) : (
-                    <span className={`font-semibold ${p.stock <= 5 ? "text-amber-700 font-bold" : "text-foreground"}`}>
+                    <span
+                      className={`font-semibold ${p.stock <= 5 ? "text-amber-700 font-bold" : "text-foreground"}`}
+                    >
                       {p.stock} units
                     </span>
                   )}

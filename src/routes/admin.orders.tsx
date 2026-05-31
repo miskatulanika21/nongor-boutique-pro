@@ -184,7 +184,8 @@ function OrderDetailsSection({
         <Section title="Delivery">
           <div>{order.district}</div>
           <div className="text-muted-foreground mt-1">
-            Courier Partner: <span className="font-medium text-foreground">{order.courier ?? "Not Assigned"}</span>
+            Courier Partner:{" "}
+            <span className="font-medium text-foreground">{order.courier ?? "Not Assigned"}</span>
             {order.trackingId && (
               <>
                 {" "}
@@ -210,13 +211,19 @@ function OrderDetailsSection({
             onChange={(e) => setSelectedStatus(e.target.value as Order["status"])}
             className="w-full bg-secondary border-0 outline-none rounded-lg px-3 py-2 mt-1 text-sm cursor-pointer"
           >
-            {["Pending", "Confirmed", "Processing", "Packed", "Shipped", "Delivered", "Cancelled"].map(
-              (s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              )
-            )}
+            {[
+              "Pending",
+              "Confirmed",
+              "Processing",
+              "Packed",
+              "Shipped",
+              "Delivered",
+              "Cancelled",
+            ].map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
           </select>
         </Section>
         <Section title="Total Price">

@@ -8,7 +8,9 @@ export function pushRecentlyViewed(productId: string) {
     const list: string[] = raw ? JSON.parse(raw) : [];
     const next = [productId, ...list.filter((id) => id !== productId)].slice(0, MAX);
     localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {}
+  } catch {
+    // Ignore error
+  }
 }
 
 export function getRecentlyViewed(): string[] {

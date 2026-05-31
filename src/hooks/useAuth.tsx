@@ -29,8 +29,16 @@ export type AuthState = {
   isAdmin: boolean;
 
   /* ── Actions ── */
-  signIn: (email: string, password: string) => Promise<{ success: boolean; role: UserRole | null; error?: string }>;
-  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; role: UserRole | null; error?: string }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone: string,
+  ) => Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
@@ -45,10 +53,13 @@ function saveMockAuth(profile: UserProfile | null) {
   if (profile) {
     localStorage.setItem("nongor_auth", JSON.stringify(profile));
     // Keep legacy key in sync for admin route guard
-    localStorage.setItem("nongor_admin_auth", JSON.stringify({
-      isAdmin: profile.role === "admin",
-      email: profile.email,
-    }));
+    localStorage.setItem(
+      "nongor_admin_auth",
+      JSON.stringify({
+        isAdmin: profile.role === "admin",
+        email: profile.email,
+      }),
+    );
   } else {
     localStorage.removeItem("nongor_auth");
     localStorage.setItem("nongor_admin_auth", JSON.stringify({ isAdmin: false, email: "" }));
@@ -135,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // If there is no Supabase session, check if we have a saved mock admin in localStorage!
         const saved = loadMockAuth();
-        if (saved && saved.role === 'admin') {
+        if (saved && saved.role === "admin") {
           setProfile(saved);
         }
       }
@@ -143,27 +154,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
 
-        if (event === "SIGNED_OUT" || !session) {
-          setUser(null);
-          setProfile(null);
-          saveMockAuth(null);
-          return;
-        }
+      if (event === "SIGNED_OUT" || !session) {
+        setUser(null);
+        setProfile(null);
+        saveMockAuth(null);
+        return;
+      }
 
-        if (session?.user) {
-          setUser(session.user);
-          const p = await fetchProfile(session.user.id, session.user.email ?? "");
-          if (mounted) {
-            setProfile(p);
-            saveMockAuth(p);
-          }
+      if (session?.user) {
+        setUser(session.user);
+        const p = await fetchProfile(session.user.id, session.user.email ?? "");
+        if (mounted) {
+          setProfile(p);
+          saveMockAuth(p);
         }
       }
-    );
+    });
 
     return () => {
       mounted = false;
@@ -172,104 +183,113 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /* ── Sign In ── */
-  const signIn = useCallback(async (
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; role: UserRole | null; error?: string }> => {
-    const isMockAdmin = email.toLowerCase() === 'admin@nongor.com' && password === 'nongor2024';
+  const signIn = useCallback(
+    async (
+      email: string,
+      password: string,
+    ): Promise<{ success: boolean; role: UserRole | null; error?: string }> => {
+      const isMockAdmin = email.toLowerCase() === "admin@nongor.com" && password === "nongor2024";
 
-    if (!isSupabaseConfigured || isMockAdmin) {
-      // Mock mode
-      const mockUser = MOCK_USERS[email.toLowerCase()];
-      if (mockUser && mockUser.password === password) {
-        setProfile(mockUser.profile);
-        saveMockAuth(mockUser.profile);
-        return { success: true, role: mockUser.profile.role };
+      if (!isSupabaseConfigured || isMockAdmin) {
+        // Mock mode
+        const mockUser = MOCK_USERS[email.toLowerCase()];
+        if (mockUser && mockUser.password === password) {
+          setProfile(mockUser.profile);
+          saveMockAuth(mockUser.profile);
+          return { success: true, role: mockUser.profile.role };
+        }
+
+        // Allow any email/password as customer in mock mode (for demo)
+        const mockCustomer: UserProfile = {
+          id: `mock-customer-${Date.now()}`,
+          fullName: email.split("@")[0],
+          phone: "",
+          role: "customer",
+          email,
+        };
+        setProfile(mockCustomer);
+        saveMockAuth(mockCustomer);
+        return { success: true, role: "customer" };
       }
 
-      // Allow any email/password as customer in mock mode (for demo)
-      const mockCustomer: UserProfile = {
-        id: `mock-customer-${Date.now()}`,
-        fullName: email.split("@")[0],
-        phone: "",
-        role: "customer",
-        email,
-      };
-      setProfile(mockCustomer);
-      saveMockAuth(mockCustomer);
-      return { success: true, role: "customer" };
-    }
+      // Real Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    // Real Supabase auth
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error || !data.user) {
+        return { success: false, role: null, error: error?.message ?? "Login failed" };
+      }
 
-    if (error || !data.user) {
-      return { success: false, role: null, error: error?.message ?? "Login failed" };
-    }
-
-    setUser(data.user);
-    const p = await fetchProfile(data.user.id, data.user.email ?? "");
-    setProfile(p);
-    saveMockAuth(p);
-
-    return { success: true, role: p?.role ?? "customer" };
-  }, []);
-
-  /* ── Sign Up ── */
-  const signUp = useCallback(async (
-    email: string,
-    password: string,
-    fullName: string,
-    phone: string
-  ): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> => {
-    if (!isSupabaseConfigured) {
-      // Mock mode: just create a customer profile
-      const mockCustomer: UserProfile = {
-        id: `mock-customer-${Date.now()}`,
-        fullName,
-        phone,
-        role: "customer",
-        email,
-      };
-      setProfile(mockCustomer);
-      saveMockAuth(mockCustomer);
-      return { success: true, needsConfirmation: false };
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, phone },
-      },
-    });
-
-    if (error) {
-      return { success: false, error: error.message };
-    }
-
-    if (data.user) {
       setUser(data.user);
-      // Profile should be auto-created by the database trigger
-      // Wait a moment then fetch
-      await new Promise((r) => setTimeout(r, 500));
       const p = await fetchProfile(data.user.id, data.user.email ?? "");
-      if (p) {
-        // Update profile with name and phone
-        await supabase.from("profiles").update({
-          full_name: fullName,
-          phone,
-        }).eq("id", data.user.id);
-        p.fullName = fullName;
-        p.phone = phone;
-      }
       setProfile(p);
       saveMockAuth(p);
-    }
 
-    const needsConfirmation = !data.session;
-    return { success: true, needsConfirmation };
-  }, []);
+      return { success: true, role: p?.role ?? "customer" };
+    },
+    [],
+  );
+
+  /* ── Sign Up ── */
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      fullName: string,
+      phone: string,
+    ): Promise<{ success: boolean; error?: string; needsConfirmation?: boolean }> => {
+      if (!isSupabaseConfigured) {
+        // Mock mode: just create a customer profile
+        const mockCustomer: UserProfile = {
+          id: `mock-customer-${Date.now()}`,
+          fullName,
+          phone,
+          role: "customer",
+          email,
+        };
+        setProfile(mockCustomer);
+        saveMockAuth(mockCustomer);
+        return { success: true, needsConfirmation: false };
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, phone },
+        },
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        setUser(data.user);
+        // Profile should be auto-created by the database trigger
+        // Wait a moment then fetch
+        await new Promise((r) => setTimeout(r, 500));
+        const p = await fetchProfile(data.user.id, data.user.email ?? "");
+        if (p) {
+          // Update profile with name and phone
+          await supabase
+            .from("profiles")
+            .update({
+              full_name: fullName,
+              phone,
+            })
+            .eq("id", data.user.id);
+          p.fullName = fullName;
+          p.phone = phone;
+        }
+        setProfile(p);
+        saveMockAuth(p);
+      }
+
+      const needsConfirmation = !data.session;
+      return { success: true, needsConfirmation };
+    },
+    [],
+  );
 
   /* ── Sign Out ── */
   const signOut = useCallback(async () => {
@@ -282,30 +302,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /* ── Reset Password ── */
-  const resetPassword = useCallback(async (email: string): Promise<{ success: boolean; error?: string }> => {
-    if (!isSupabaseConfigured) {
-      return { success: true }; // Mock mode: always succeed
-    }
+  const resetPassword = useCallback(
+    async (email: string): Promise<{ success: boolean; error?: string }> => {
+      if (!isSupabaseConfigured) {
+        return { success: true }; // Mock mode: always succeed
+      }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
-    });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      });
 
-    if (error) {
-      return { success: false, error: error.message };
-    }
-    return { success: true };
-  }, []);
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      return { success: true };
+    },
+    [],
+  );
 
   /* ── Update Password ── */
-  const updatePassword = useCallback(async (password: string): Promise<{ success: boolean; error?: string }> => {
-    if (!isSupabaseConfigured) {
-      return { success: true }; // Mock mode: always succeed
-    }
-    const { error } = await supabase.auth.updateUser({ password });
-    if (error) return { success: false, error: error.message };
-    return { success: true };
-  }, []);
+  const updatePassword = useCallback(
+    async (password: string): Promise<{ success: boolean; error?: string }> => {
+      if (!isSupabaseConfigured) {
+        return { success: true }; // Mock mode: always succeed
+      }
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    },
+    [],
+  );
 
   /* ── Derived state ── */
   const role = profile?.role ?? null;

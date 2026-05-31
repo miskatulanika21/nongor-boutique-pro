@@ -1,4 +1,10 @@
-import { createFileRoute, Outlet, redirect, useRouterState, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Outlet,
+  redirect,
+  useRouterState,
+  useNavigate,
+} from "@tanstack/react-router";
 import { AdminShell } from "@/components/AdminShell";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -85,19 +91,19 @@ function AdminLoadingScreen() {
 function AdminLayout() {
   const routerState = useRouterState();
   const navigate = useNavigate();
+  const { isLoading, isAdmin } = useAuth();
   const isLoginPage = routerState.location.pathname === "/admin/login";
+
+  useEffect(() => {
+    if (isLoginPage) return;
+    if (!isLoading && !isAdmin) {
+      navigate({ to: "/login", search: { redirect: routerState.location.pathname } });
+    }
+  }, [isLoading, isAdmin, navigate, routerState.location.pathname, isLoginPage]);
 
   if (isLoginPage) {
     return <Outlet />;
   }
-
-  const { isLoading, isAdmin } = useAuth();
-
-  useEffect(() => {
-    if (!isLoading && !isAdmin) {
-      navigate({ to: "/login", search: { redirect: routerState.location.pathname } });
-    }
-  }, [isLoading, isAdmin, navigate, routerState.location.pathname]);
 
   if (isLoading) {
     return <AdminLoadingScreen />;

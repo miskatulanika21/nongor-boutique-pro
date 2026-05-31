@@ -249,7 +249,9 @@ function Page() {
               <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/60">
                 <div>
                   <div className="font-semibold text-xs">Activate Coupon</div>
-                  <div className="text-[10px] text-muted-foreground">Is this coupon active currently?</div>
+                  <div className="text-[10px] text-muted-foreground">
+                    Is this coupon active currently?
+                  </div>
                 </div>
                 <input
                   type="checkbox"

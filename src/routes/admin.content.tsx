@@ -20,10 +20,17 @@ function Page() {
         ].map((s) => (
           <div key={s.title} className="bg-card rounded-xl p-5 border border-border/60">
             <div className="flex items-start justify-between">
-              <div><h3 className="font-display text-lg">{s.title}</h3><p className="text-xs text-muted-foreground mt-1">{s.desc}</p></div>
-              <button className="bg-secondary px-3 py-1.5 rounded-lg text-xs font-semibold">Edit</button>
+              <div>
+                <h3 className="font-display text-lg">{s.title}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{s.desc}</p>
+              </div>
+              <button className="bg-secondary px-3 py-1.5 rounded-lg text-xs font-semibold">
+                Edit
+              </button>
             </div>
-            <div className="mt-4 aspect-[3/1] bg-secondary rounded-lg grid place-items-center text-muted-foreground text-xs">Preview placeholder</div>
+            <div className="mt-4 aspect-[3/1] bg-secondary rounded-lg grid place-items-center text-muted-foreground text-xs">
+              Preview placeholder
+            </div>
           </div>
         ))}
       </div>

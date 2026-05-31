@@ -20,7 +20,12 @@ export function isOutOfStock(product: Product, size?: string, color?: string): b
 }
 
 /** True when stock is low (≤ threshold, default 5). */
-export function isLowStock(product: Product, size?: string, color?: string, threshold = 5): boolean {
+export function isLowStock(
+  product: Product,
+  size?: string,
+  color?: string,
+  threshold = 5,
+): boolean {
   const s = getStock(product, size, color);
   return s > 0 && s <= threshold;
 }

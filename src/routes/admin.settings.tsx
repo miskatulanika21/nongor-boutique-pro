@@ -18,7 +18,7 @@ function Page() {
   const [contactNumber, setContactNumber] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  
+
   const [deliveryInsideDhaka, setDeliveryInsideDhaka] = useState("");
   const [deliveryOutsideDhaka, setDeliveryOutsideDhaka] = useState("");
   const [freeDeliveryThreshold, setFreeDeliveryThreshold] = useState("");
@@ -95,9 +95,14 @@ function Page() {
         </TabsList>
 
         {/* Store details */}
-        <TabsContent value="store" className="bg-card rounded-xl p-6 mt-4 grid md:grid-cols-2 gap-4 text-sm border border-border/60">
+        <TabsContent
+          value="store"
+          className="bg-card rounded-xl p-6 mt-4 grid md:grid-cols-2 gap-4 text-sm border border-border/60"
+        >
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Store Name</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Store Name
+            </label>
             <input
               value={storeName}
               onChange={(e) => setStoreName(e.target.value)}
@@ -105,7 +110,9 @@ function Page() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact Number</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Contact Number
+            </label>
             <input
               value={contactNumber}
               onChange={(e) => setContactNumber(e.target.value)}
@@ -113,7 +120,9 @@ function Page() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email Address</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Email Address
+            </label>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -121,7 +130,9 @@ function Page() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Store Physical Address</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Store Physical Address
+            </label>
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
@@ -129,7 +140,9 @@ function Page() {
             />
           </div>
           <div className="md:col-span-2">
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Store Branding Logo</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Store Branding Logo
+            </label>
             <div className="mt-1.5 border-2 border-dashed border-border rounded-lg p-6 text-center text-sm text-muted-foreground bg-secondary/30">
               Upload logo (Admin demo placeholder)
             </div>
@@ -137,9 +150,14 @@ function Page() {
         </TabsContent>
 
         {/* Delivery settings */}
-        <TabsContent value="delivery" className="bg-card rounded-xl p-6 mt-4 text-sm space-y-4 border border-border/60">
+        <TabsContent
+          value="delivery"
+          className="bg-card rounded-xl p-6 mt-4 text-sm space-y-4 border border-border/60"
+        >
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Delivery Charge (Inside Dhaka)</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Delivery Charge (Inside Dhaka)
+            </label>
             <input
               value={deliveryInsideDhaka}
               onChange={(e) => setDeliveryInsideDhaka(e.target.value)}
@@ -147,7 +165,9 @@ function Page() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Delivery Charge (Outside Dhaka)</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Delivery Charge (Outside Dhaka)
+            </label>
             <input
               value={deliveryOutsideDhaka}
               onChange={(e) => setDeliveryOutsideDhaka(e.target.value)}
@@ -155,7 +175,9 @@ function Page() {
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Free Delivery Order Threshold</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Free Delivery Order Threshold
+            </label>
             <input
               value={freeDeliveryThreshold}
               onChange={(e) => setFreeDeliveryThreshold(e.target.value)}
@@ -165,64 +187,129 @@ function Page() {
         </TabsContent>
 
         {/* Payment Gateways toggles */}
-        <TabsContent value="payment" className="bg-card rounded-xl p-6 mt-4 space-y-3 border border-border/60">
+        <TabsContent
+          value="payment"
+          className="bg-card rounded-xl p-6 mt-4 space-y-3 border border-border/60"
+        >
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">Cash on Delivery (COD)</span>
-              <div className="text-[11px] text-muted-foreground">Pay with cash upon package hand over</div>
+              <div className="text-[11px] text-muted-foreground">
+                Pay with cash upon package hand over
+              </div>
             </div>
-            <input type="checkbox" checked={enableCOD} onChange={(e) => setEnableCOD(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableCOD}
+              onChange={(e) => setEnableCOD(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">bKash Merchant Pay</span>
-              <div className="text-[11px] text-muted-foreground">Manual transfer verification gateway</div>
+              <div className="text-[11px] text-muted-foreground">
+                Manual transfer verification gateway
+              </div>
             </div>
-            <input type="checkbox" checked={enableBkash} onChange={(e) => setEnableBkash(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableBkash}
+              onChange={(e) => setEnableBkash(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">Nagad Personal Pay</span>
-              <div className="text-[11px] text-muted-foreground">Manual transfer verification gateway</div>
+              <div className="text-[11px] text-muted-foreground">
+                Manual transfer verification gateway
+              </div>
             </div>
-            <input type="checkbox" checked={enableNagad} onChange={(e) => setEnableNagad(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableNagad}
+              onChange={(e) => setEnableNagad(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">Rocket Merchant Pay</span>
-              <div className="text-[11px] text-muted-foreground">Manual transfer verification gateway</div>
+              <div className="text-[11px] text-muted-foreground">
+                Manual transfer verification gateway
+              </div>
             </div>
-            <input type="checkbox" checked={enableRocket} onChange={(e) => setEnableRocket(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableRocket}
+              onChange={(e) => setEnableRocket(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">Card (SSLCommerz gateway)</span>
-              <div className="text-[11px] text-muted-foreground">Direct online Visa, MasterCard secure channel</div>
+              <div className="text-[11px] text-muted-foreground">
+                Direct online Visa, MasterCard secure channel
+              </div>
             </div>
-            <input type="checkbox" checked={enableCard} onChange={(e) => setEnableCard(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableCard}
+              onChange={(e) => setEnableCard(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <div>
               <span className="font-semibold text-sm">ShurjoPay</span>
-              <div className="text-[11px] text-muted-foreground">Local online banking secure channel</div>
+              <div className="text-[11px] text-muted-foreground">
+                Local online banking secure channel
+              </div>
             </div>
-            <input type="checkbox" checked={enableShurjoPay} onChange={(e) => setEnableShurjoPay(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={enableShurjoPay}
+              onChange={(e) => setEnableShurjoPay(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
         </TabsContent>
 
         {/* Notifications */}
-        <TabsContent value="notify" className="bg-card rounded-xl p-6 mt-4 space-y-3 border border-border/60">
+        <TabsContent
+          value="notify"
+          className="bg-card rounded-xl p-6 mt-4 space-y-3 border border-border/60"
+        >
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <span className="font-semibold text-sm">Email alert for new order placement</span>
-            <input type="checkbox" checked={emailAlertNewOrder} onChange={(e) => setEmailAlertNewOrder(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={emailAlertNewOrder}
+              onChange={(e) => setEmailAlertNewOrder(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
             <span className="font-semibold text-sm">SMS alert for new order placement</span>
-            <input type="checkbox" checked={smsAlertNewOrder} onChange={(e) => setSmsAlertNewOrder(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <input
+              type="checkbox"
+              checked={smsAlertNewOrder}
+              onChange={(e) => setSmsAlertNewOrder(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
           <label className="flex items-center justify-between p-3.5 rounded-lg bg-secondary/60 cursor-pointer">
-            <span className="font-semibold text-sm">Customer automatic confirmation receipt SMS</span>
-            <input type="checkbox" checked={customerConfirmSms} onChange={(e) => setCustomerConfirmSms(e.target.checked)} className="accent-maroon h-4 w-4 cursor-pointer" />
+            <span className="font-semibold text-sm">
+              Customer automatic confirmation receipt SMS
+            </span>
+            <input
+              type="checkbox"
+              checked={customerConfirmSms}
+              onChange={(e) => setCustomerConfirmSms(e.target.checked)}
+              className="accent-maroon h-4 w-4 cursor-pointer"
+            />
           </label>
         </TabsContent>
       </Tabs>

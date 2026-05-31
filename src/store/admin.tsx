@@ -9,7 +9,10 @@ import {
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { adminGetAllProducts } from "@/services/products";
 import { adminGetAllOrders } from "@/services/orders";
-import { approvePayment as approvePaymentService, rejectPayment as rejectPaymentService } from "@/services/payments";
+import {
+  approvePayment as approvePaymentService,
+  rejectPayment as rejectPaymentService,
+} from "@/services/payments";
 import { adminGetAllCoupons } from "@/services/coupons";
 import { getSettings, adminUpdateSetting } from "@/services/settings";
 import { toMockProducts } from "@/lib/product-adapter";
@@ -81,15 +84,31 @@ function save(key: string, value: unknown) {
   if (isBrowser) localStorage.setItem(key, JSON.stringify(value));
 }
 
-function toMockOrder(o: any): Order {
+type OrderInput = {
+  order_number: string;
+  customer_name: string;
+  customer_phone: string;
+  address?: { district: string } | null;
+  created_at: string;
+  items?: { quantity: number }[] | null;
+  total_amount: number;
+  payment_method: string;
+  payment_status: string;
+  order_status: string;
+  courier_name?: string | null;
+  tracking_id?: string | null;
+  payments?: { trx_id: string }[] | null;
+};
+
+function toMockOrder(o: OrderInput): Order {
   let paymentStatus: Order["paymentStatus"] = "Pending";
-  if (o.payment_method === 'cod') {
+  if (o.payment_method === "cod") {
     paymentStatus = "COD";
-  } else if (o.payment_status === 'verification_needed') {
+  } else if (o.payment_status === "verification_needed") {
     paymentStatus = "Verification Needed";
-  } else if (o.payment_status === 'paid') {
+  } else if (o.payment_status === "paid") {
     paymentStatus = "Paid";
-  } else if (o.payment_status === 'failed') {
+  } else if (o.payment_status === "failed") {
     paymentStatus = "Failed";
   }
 
@@ -100,7 +119,7 @@ function toMockOrder(o: any): Order {
     packed: "Packed",
     shipped: "Shipped",
     delivered: "Delivered",
-    cancelled: "Cancelled"
+    cancelled: "Cancelled",
   };
 
   const paymentMap: Record<string, Order["payment"]> = {
@@ -109,7 +128,7 @@ function toMockOrder(o: any): Order {
     nagad: "Nagad",
     rocket: "Rocket",
     sslcommerz: "Card",
-    shurjopay: "ShurjoPay"
+    shurjopay: "ShurjoPay",
   };
 
   return {
@@ -118,14 +137,14 @@ function toMockOrder(o: any): Order {
     phone: o.customer_phone,
     district: o.address?.district || "Dhaka",
     date: o.created_at.slice(0, 10),
-    items: o.items ? o.items.reduce((sum: number, item: any) => sum + item.quantity, 0) : 1,
+    items: o.items ? o.items.reduce((sum: number, item) => sum + item.quantity, 0) : 1,
     total: o.total_amount,
     payment: paymentMap[o.payment_method] ?? "COD",
     paymentStatus,
     status: statusMap[o.order_status] ?? "Pending",
     courier: o.courier_name ?? undefined,
     trackingId: o.tracking_id ?? undefined,
-    trxId: o.payments?.[0]?.trx_id ?? undefined
+    trxId: o.payments?.[0]?.trx_id ?? undefined,
   };
 }
 
@@ -146,22 +165,23 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const authLoading = sharedAuth.isLoading;
   const isMockAdmin = auth.email === "admin@nongor.com" || auth.userId?.startsWith("mock-");
 
-  const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    const result = await sharedAuth.signIn(email, password);
-    return result.success && result.role === "admin";
-  }, [sharedAuth.signIn]);
+  const login = useCallback(
+    async (email: string, password: string): Promise<boolean> => {
+      const result = await sharedAuth.signIn(email, password);
+      return result.success && result.role === "admin";
+    },
+    [sharedAuth],
+  );
 
   const logout = useCallback(async () => {
     await sharedAuth.signOut();
-  }, [sharedAuth.signOut]);
+  }, [sharedAuth]);
 
   /* ───── State Declarations ───── */
   const [products, setProducts] = useState<Product[]>(() =>
     load("nongor_admin_products", defaultProducts),
   );
-  const [orders, setOrders] = useState<Order[]>(() =>
-    load("nongor_orders", defaultOrders),
-  );
+  const [orders, setOrders] = useState<Order[]>(() => load("nongor_orders", defaultOrders));
   const [coupons, setCoupons] = useState<Coupon[]>(() =>
     load("nongor_admin_coupons", defaultCoupons as Coupon[]),
   );
@@ -187,10 +207,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   );
 
   // Sync to local storage for offline use
-  useEffect(() => { if (!isSupabaseConfigured) save("nongor_admin_products", products); }, [products]);
-  useEffect(() => { if (!isSupabaseConfigured) save("nongor_orders", orders); }, [orders]);
-  useEffect(() => { if (!isSupabaseConfigured) save("nongor_admin_coupons", coupons); }, [coupons]);
-  useEffect(() => { if (!isSupabaseConfigured) save("nongor_admin_settings", settings); }, [settings]);
+  useEffect(() => {
+    if (!isSupabaseConfigured) save("nongor_admin_products", products);
+  }, [products]);
+  useEffect(() => {
+    if (!isSupabaseConfigured) save("nongor_orders", orders);
+  }, [orders]);
+  useEffect(() => {
+    if (!isSupabaseConfigured) save("nongor_admin_coupons", coupons);
+  }, [coupons]);
+  useEffect(() => {
+    if (!isSupabaseConfigured) save("nongor_admin_settings", settings);
+  }, [settings]);
 
   // Load live database data if Supabase is configured and logged in as admin
   useEffect(() => {
@@ -210,17 +238,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
         if (mounted) {
           setProducts(toMockProducts(dbProds));
           setOrders(dbOrders.map(toMockOrder));
-          setCoupons(dbCoupons.map(c => ({
-            code: c.code,
-            type: c.type === 'percent' ? 'Percentage'
-                : c.type === 'flat' ? 'Flat'
-                : 'Free Delivery',
-            value: c.value,
-            minOrder: c.minimum_order,
-            expiry: c.expires_at ? c.expires_at.slice(0, 10) : '2026-12-31',
-            uses: c.used_count,
-            active: c.is_active,
-          })));
+          setCoupons(
+            dbCoupons.map((c) => ({
+              code: c.code,
+              type:
+                c.type === "percent" ? "Percentage" : c.type === "flat" ? "Flat" : "Free Delivery",
+              value: c.value,
+              minOrder: c.minimum_order,
+              expiry: c.expires_at ? c.expires_at.slice(0, 10) : "2026-12-31",
+              uses: c.used_count,
+              active: c.is_active,
+            })),
+          );
           setSettings(dbSettings);
         }
       } catch (err) {
@@ -236,458 +265,523 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   }, [auth.isAdmin]);
 
   /* ───── Products actions ───── */
-  const addProduct = useCallback(async (p: Product) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setProducts((prev) => {
-        const list = [p, ...prev];
-        save("nongor_admin_products", list);
-        return list;
-      });
-      return;
-    }
-
-    try {
-      let categoryId = null;
-      if (p.category) {
-        const { data: cat } = await supabase
-          .from("categories")
-          .select("id")
-          .eq("name", p.category)
-          .maybeSingle();
-
-        if (cat) {
-          categoryId = cat.id;
-        } else {
-          const { data: newCat } = await supabase
-            .from("categories")
-            .insert({
-              name: p.category,
-              slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-              is_active: true,
-              sort_order: 0
-            })
-            .select("id")
-            .single();
-          if (newCat) categoryId = newCat.id;
-        }
-      }
-
-      const { data: prod, error } = await supabase
-        .from("products")
-        .insert({
-          name: p.name,
-          slug: p.slug,
-          price: p.price,
-          discount_price: p.discountPrice ?? null,
-          category_id: categoryId,
-          occasion: p.occasion,
-          fabric: p.fabric,
-          description: p.description,
-          status: p.status.toLowerCase() as any,
-          is_featured: p.featured ?? false,
-          is_new_arrival: p.isNew ?? false,
-          is_best_seller: p.isBestSeller ?? false,
-        })
-        .select()
-        .single();
-
-      if (error || !prod) {
-        console.error("Error creating product:", error);
+  const addProduct = useCallback(
+    async (p: Product) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setProducts((prev) => {
+          const list = [p, ...prev];
+          save("nongor_admin_products", list);
+          return list;
+        });
         return;
       }
 
-      if (p.images && p.images.length > 0) {
-        const imgRows = p.images.map((url, i) => ({
-          product_id: prod.id,
-          image_url: url,
-          alt_text: p.name,
-          display_order: i,
-          is_primary: i === 0,
-        }));
-        await supabase.from("product_images").insert(imgRows);
-      }
+      try {
+        let categoryId = null;
+        if (p.category) {
+          const { data: cat } = await supabase
+            .from("categories")
+            .select("id")
+            .eq("name", p.category)
+            .maybeSingle();
 
-      const variantRows: any[] = [];
-      const defaultSizes = p.sizes && p.sizes.length > 0 ? p.sizes : ["M"];
-      const defaultColors = p.colors && p.colors.length > 0 ? p.colors : [{ name: "Default", hex: "#888888" }];
-
-      for (const size of defaultSizes) {
-        for (const col of defaultColors) {
-          const varStock = p.stockByVariant?.[`${size}-${col.name}`] ?? Math.floor(p.stock / (defaultSizes.length * defaultColors.length)) ?? p.stock;
-          variantRows.push({
-            product_id: prod.id,
-            size,
-            color: col.name,
-            stock: varStock,
-            is_active: true,
-          });
-        }
-      }
-
-      if (variantRows.length > 0) {
-        await supabase.from("product_variants").insert(variantRows);
-      }
-
-      const dbProds = await adminGetAllProducts();
-      setProducts(toMockProducts(dbProds));
-    } catch (err) {
-      console.error("addProduct error:", err);
-    }
-  }, []);
-
-  const updateProduct = useCallback(async (id: string, patch: Partial<Product>) => {
-    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
-    const hasMockId = !isUuid(id);
-
-    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
-      setProducts((prev) => {
-        const list = prev.map((p) => (p.id === id ? { ...p, ...patch } : p));
-        save("nongor_admin_products", list);
-        return list;
-      });
-      return;
-    }
-
-    try {
-      let categoryId = undefined;
-      if (patch.category) {
-        const { data: cat } = await supabase
-          .from("categories")
-          .select("id")
-          .eq("name", patch.category)
-          .maybeSingle();
-        if (cat) {
-          categoryId = cat.id;
-        }
-      }
-
-      const dbPatch: any = {};
-      if (patch.name !== undefined) dbPatch.name = patch.name;
-      if (patch.slug !== undefined) dbPatch.slug = patch.slug;
-      if (patch.price !== undefined) dbPatch.price = patch.price;
-      if (patch.discountPrice !== undefined) dbPatch.discount_price = patch.discountPrice;
-      if (categoryId !== undefined) dbPatch.category_id = categoryId;
-      if (patch.occasion !== undefined) dbPatch.occasion = patch.occasion;
-      if (patch.fabric !== undefined) dbPatch.fabric = patch.fabric;
-      if (patch.description !== undefined) dbPatch.description = patch.description;
-      if (patch.status !== undefined) dbPatch.status = patch.status.toLowerCase();
-      if (patch.featured !== undefined) dbPatch.is_featured = patch.featured;
-      if (patch.isNew !== undefined) dbPatch.is_new_arrival = patch.isNew;
-      if (patch.isBestSeller !== undefined) dbPatch.is_best_seller = patch.isBestSeller;
-
-      if (Object.keys(dbPatch).length > 0) {
-        await supabase.from("products").update(dbPatch).eq("id", id);
-      }
-
-      if (patch.stock !== undefined) {
-        const { data: vars } = await supabase
-          .from("product_variants")
-          .select("id")
-          .eq("product_id", id);
-
-        if (vars && vars.length > 0) {
-          const singleStock = Math.floor(patch.stock / vars.length);
-          for (const v of vars) {
-            await supabase
-              .from("product_variants")
-              .update({ stock: singleStock })
-              .eq("id", v.id);
+          if (cat) {
+            categoryId = cat.id;
+          } else {
+            const { data: newCat } = await supabase
+              .from("categories")
+              .insert({
+                name: p.category,
+                slug: p.category.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+                is_active: true,
+                sort_order: 0,
+              })
+              .select("id")
+              .single();
+            if (newCat) categoryId = newCat.id;
           }
         }
+
+        const { data: prod, error } = await supabase
+          .from("products")
+          .insert({
+            name: p.name,
+            slug: p.slug,
+            price: p.price,
+            discount_price: p.discountPrice ?? null,
+            category_id: categoryId,
+            occasion: p.occasion,
+            fabric: p.fabric,
+            description: p.description,
+            status: p.status.toLowerCase() as "published" | "draft" | "archived",
+            is_featured: p.featured ?? false,
+            is_new_arrival: p.isNew ?? false,
+            is_best_seller: p.isBestSeller ?? false,
+          })
+          .select()
+          .single();
+
+        if (error || !prod) {
+          console.error("Error creating product:", error);
+          return;
+        }
+
+        if (p.images && p.images.length > 0) {
+          const imgRows = p.images.map((url, i) => ({
+            product_id: prod.id,
+            image_url: url,
+            alt_text: p.name,
+            display_order: i,
+            is_primary: i === 0,
+          }));
+          await supabase.from("product_images").insert(imgRows);
+        }
+
+        const variantRows: {
+          product_id: string;
+          size: string;
+          color: string;
+          stock: number;
+          is_active: boolean;
+        }[] = [];
+        const defaultSizes = p.sizes && p.sizes.length > 0 ? p.sizes : ["M"];
+        const defaultColors =
+          p.colors && p.colors.length > 0 ? p.colors : [{ name: "Default", hex: "#888888" }];
+
+        for (const size of defaultSizes) {
+          for (const col of defaultColors) {
+            const varStock =
+              p.stockByVariant?.[`${size}-${col.name}`] ??
+              Math.floor(p.stock / (defaultSizes.length * defaultColors.length)) ??
+              p.stock;
+            variantRows.push({
+              product_id: prod.id,
+              size,
+              color: col.name,
+              stock: varStock,
+              is_active: true,
+            });
+          }
+        }
+
+        if (variantRows.length > 0) {
+          await supabase.from("product_variants").insert(variantRows);
+        }
+
+        const dbProds = await adminGetAllProducts();
+        setProducts(toMockProducts(dbProds));
+      } catch (err) {
+        console.error("addProduct error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
+
+  const updateProduct = useCallback(
+    async (id: string, patch: Partial<Product>) => {
+      const isUuid = (val: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+      const hasMockId = !isUuid(id);
+
+      if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+        setProducts((prev) => {
+          const list = prev.map((p) => (p.id === id ? { ...p, ...patch } : p));
+          save("nongor_admin_products", list);
+          return list;
+        });
+        return;
       }
 
-      const dbProds = await adminGetAllProducts();
-      setProducts(toMockProducts(dbProds));
-    } catch (err) {
-      console.error("updateProduct error:", err);
-    }
-  }, []);
+      try {
+        let categoryId = undefined;
+        if (patch.category) {
+          const { data: cat } = await supabase
+            .from("categories")
+            .select("id")
+            .eq("name", patch.category)
+            .maybeSingle();
+          if (cat) {
+            categoryId = cat.id;
+          }
+        }
 
-  const deleteProduct = useCallback(async (id: string) => {
-    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
-    const hasMockId = !isUuid(id);
+        const dbPatch: Record<string, unknown> = {};
+        if (patch.name !== undefined) dbPatch.name = patch.name;
+        if (patch.slug !== undefined) dbPatch.slug = patch.slug;
+        if (patch.price !== undefined) dbPatch.price = patch.price;
+        if (patch.discountPrice !== undefined) dbPatch.discount_price = patch.discountPrice;
+        if (categoryId !== undefined) dbPatch.category_id = categoryId;
+        if (patch.occasion !== undefined) dbPatch.occasion = patch.occasion;
+        if (patch.fabric !== undefined) dbPatch.fabric = patch.fabric;
+        if (patch.description !== undefined) dbPatch.description = patch.description;
+        if (patch.status !== undefined) dbPatch.status = patch.status.toLowerCase();
+        if (patch.featured !== undefined) dbPatch.is_featured = patch.featured;
+        if (patch.isNew !== undefined) dbPatch.is_new_arrival = patch.isNew;
+        if (patch.isBestSeller !== undefined) dbPatch.is_best_seller = patch.isBestSeller;
 
-    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
-      setProducts((prev) => {
-        const list = prev.filter((p) => p.id !== id);
-        save("nongor_admin_products", list);
-        return list;
-      });
-      return;
-    }
+        if (Object.keys(dbPatch).length > 0) {
+          await supabase.from("products").update(dbPatch).eq("id", id);
+        }
 
-    try {
-      await supabase.from("products").delete().eq("id", id);
-      const dbProds = await adminGetAllProducts();
-      setProducts(toMockProducts(dbProds));
-    } catch (err) {
-      console.error("deleteProduct error:", err);
-    }
-  }, []);
+        if (patch.stock !== undefined) {
+          const { data: vars } = await supabase
+            .from("product_variants")
+            .select("id")
+            .eq("product_id", id);
+
+          if (vars && vars.length > 0) {
+            const singleStock = Math.floor(patch.stock / vars.length);
+            for (const v of vars) {
+              await supabase.from("product_variants").update({ stock: singleStock }).eq("id", v.id);
+            }
+          }
+        }
+
+        const dbProds = await adminGetAllProducts();
+        setProducts(toMockProducts(dbProds));
+      } catch (err) {
+        console.error("updateProduct error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
+
+  const deleteProduct = useCallback(
+    async (id: string) => {
+      const isUuid = (val: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+      const hasMockId = !isUuid(id);
+
+      if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+        setProducts((prev) => {
+          const list = prev.filter((p) => p.id !== id);
+          save("nongor_admin_products", list);
+          return list;
+        });
+        return;
+      }
+
+      try {
+        await supabase.from("products").delete().eq("id", id);
+        const dbProds = await adminGetAllProducts();
+        setProducts(toMockProducts(dbProds));
+      } catch (err) {
+        console.error("deleteProduct error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
   /* ───── Orders actions ───── */
   const addOrder = useCallback((o: Order) => {
     setOrders((prev) => [o, ...prev]);
   }, []);
 
-  const updateOrderStatus = useCallback(async (id: string, status: Order["status"]) => {
-    const isUuid = (val: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
-    const hasMockId = !id.includes('-'); // Supabase order UUIDs contain hyphens, mock ones are NGR-xxxx
+  const updateOrderStatus = useCallback(
+    async (id: string, status: Order["status"]) => {
+      const isUuid = (val: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val);
+      const hasMockId = !id.includes("-"); // Supabase order UUIDs contain hyphens, mock ones are NGR-xxxx
 
-    if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
-      setOrders((prev) => {
-        const list = prev.map((o) => (o.id === id ? { ...o, status } : o));
-        save("nongor_orders", list);
-        return list;
-      });
-      return;
-    }
+      if (!isSupabaseConfigured || hasMockId || isMockAdmin) {
+        setOrders((prev) => {
+          const list = prev.map((o) => (o.id === id ? { ...o, status } : o));
+          save("nongor_orders", list);
+          return list;
+        });
+        return;
+      }
 
-    try {
-      const statusMap: Record<string, string> = {
-        Pending: "pending",
-        Confirmed: "confirmed",
-        Processing: "processing",
-        Packed: "packed",
-        Shipped: "shipped",
-        Delivered: "delivered",
-        Cancelled: "cancelled",
-      };
-      const dbStatus = statusMap[status] ?? "pending";
+      try {
+        const statusMap: Record<string, string> = {
+          Pending: "pending",
+          Confirmed: "confirmed",
+          Processing: "processing",
+          Packed: "packed",
+          Shipped: "shipped",
+          Delivered: "delivered",
+          Cancelled: "cancelled",
+        };
+        const dbStatus = statusMap[status] ?? "pending";
 
-      await supabase
-        .from("orders")
-        .update({ order_status: dbStatus as any })
-        .eq("order_number", id);
+        await supabase
+          .from("orders")
+          .update({
+            order_status: dbStatus as
+              | "pending"
+              | "confirmed"
+              | "processing"
+              | "packed"
+              | "shipped"
+              | "delivered"
+              | "cancelled",
+          })
+          .eq("order_number", id);
 
-      const dbOrders = await adminGetAllOrders();
-      setOrders(dbOrders.map(toMockOrder));
-    } catch (err) {
-      console.error("updateOrderStatus error:", err);
-    }
-  }, []);
+        const dbOrders = await adminGetAllOrders();
+        setOrders(dbOrders.map(toMockOrder));
+      } catch (err) {
+        console.error("updateOrderStatus error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
   /* ───── Payments actions ───── */
-  const approvePayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setOrders((prev) => {
-        const list = prev.map((o) =>
-          o.id === id
-            ? {
-                ...o,
-                paymentStatus: "Paid" as const,
-                status: o.status === "Pending" ? ("Confirmed" as const) : o.status,
-              }
-            : o,
-        );
-        save("nongor_orders", list);
-        return list;
-      });
-      return;
-    }
-
-    try {
-      const { data } = await supabase
-        .from("orders")
-        .select("id")
-        .eq("order_number", id)
-        .single();
-
-      if (data) {
-        const success = await approvePaymentService(data.id);
-        if (success) {
-          const dbOrders = await adminGetAllOrders();
-          setOrders(dbOrders.map(toMockOrder));
-        }
+  const approvePayment = useCallback(
+    async (id: string) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setOrders((prev) => {
+          const list = prev.map((o) =>
+            o.id === id
+              ? {
+                  ...o,
+                  paymentStatus: "Paid" as const,
+                  status: o.status === "Pending" ? ("Confirmed" as const) : o.status,
+                }
+              : o,
+          );
+          save("nongor_orders", list);
+          return list;
+        });
+        return;
       }
-    } catch (err) {
-      console.error("approvePayment error:", err);
-    }
-  }, []);
 
-  const rejectPayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setOrders((prev) => {
-        const list = prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Failed" as const } : o));
-        save("nongor_orders", list);
-        return list;
-      });
-      return;
-    }
+      try {
+        const { data } = await supabase.from("orders").select("id").eq("order_number", id).single();
 
-    try {
-      const { data } = await supabase
-        .from("orders")
-        .select("id")
-        .eq("order_number", id)
-        .single();
-
-      if (data) {
-        const success = await rejectPaymentService(data.id);
-        if (success) {
-          const dbOrders = await adminGetAllOrders();
-          setOrders(dbOrders.map(toMockOrder));
+        if (data) {
+          const success = await approvePaymentService(data.id);
+          if (success) {
+            const dbOrders = await adminGetAllOrders();
+            setOrders(dbOrders.map(toMockOrder));
+          }
         }
+      } catch (err) {
+        console.error("approvePayment error:", err);
       }
-    } catch (err) {
-      console.error("rejectPayment error:", err);
-    }
-  }, []);
+    },
+    [isMockAdmin],
+  );
 
-  const resetPayment = useCallback(async (id: string) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setOrders((prev) => {
-        const list = prev.map((o) => (o.id === id ? { ...o, paymentStatus: "Pending" as const } : o));
-        save("nongor_orders", list);
-        return list;
-      });
-      return;
-    }
+  const rejectPayment = useCallback(
+    async (id: string) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setOrders((prev) => {
+          const list = prev.map((o) =>
+            o.id === id ? { ...o, paymentStatus: "Failed" as const } : o,
+          );
+          save("nongor_orders", list);
+          return list;
+        });
+        return;
+      }
 
-    try {
-      await supabase
-        .from("orders")
-        .update({ payment_status: "verification_needed" })
-        .eq("order_number", id);
+      try {
+        const { data } = await supabase.from("orders").select("id").eq("order_number", id).single();
 
-      const dbOrders = await adminGetAllOrders();
-      setOrders(dbOrders.map(toMockOrder));
-    } catch (err) {
-      console.error("resetPayment error:", err);
-    }
-  }, []);
+        if (data) {
+          const success = await rejectPaymentService(data.id);
+          if (success) {
+            const dbOrders = await adminGetAllOrders();
+            setOrders(dbOrders.map(toMockOrder));
+          }
+        }
+      } catch (err) {
+        console.error("rejectPayment error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
+
+  const resetPayment = useCallback(
+    async (id: string) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setOrders((prev) => {
+          const list = prev.map((o) =>
+            o.id === id ? { ...o, paymentStatus: "Pending" as const } : o,
+          );
+          save("nongor_orders", list);
+          return list;
+        });
+        return;
+      }
+
+      try {
+        await supabase
+          .from("orders")
+          .update({ payment_status: "verification_needed" })
+          .eq("order_number", id);
+
+        const dbOrders = await adminGetAllOrders();
+        setOrders(dbOrders.map(toMockOrder));
+      } catch (err) {
+        console.error("resetPayment error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
   /* ───── Coupons actions ───── */
-  const addCoupon = useCallback(async (c: Coupon) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setCoupons((prev) => {
-        const list = [c, ...prev];
-        save("nongor_admin_coupons", list);
-        return list;
-      });
-      return;
-    }
-
-    try {
-      await supabase.from("coupons").insert({
-        code: c.code.toUpperCase(),
-        type: c.type === "Percentage" ? "percent"
-            : c.type === "Flat" ? "flat"
-            : "free_delivery",
-        value: c.value,
-        minimum_order: c.minOrder,
-        expires_at: c.expiry ? new Date(c.expiry).toISOString() : null,
-        is_active: c.active,
-        used_count: 0,
-      });
-
-      const dbCoupons = await adminGetAllCoupons();
-      setCoupons(dbCoupons.map(dbC => ({
-        code: dbC.code,
-        type: dbC.type === 'percent' ? 'Percentage'
-            : dbC.type === 'flat' ? 'Flat'
-            : 'Free Delivery',
-        value: dbC.value,
-        minOrder: dbC.minimum_order,
-        expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : '2026-12-31',
-        uses: dbC.used_count,
-        active: dbC.is_active,
-      })));
-    } catch (err) {
-      console.error("addCoupon error:", err);
-    }
-  }, []);
-
-  const updateCoupon = useCallback(async (code: string, patch: Partial<Coupon>) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setCoupons((prev) => {
-        const list = prev.map((c) => (c.code === code ? { ...c, ...patch } : c));
-        save("nongor_admin_coupons", list);
-        return list;
-      });
-      return;
-    }
-
-    try {
-      const dbPatch: any = {};
-      if (patch.type !== undefined) {
-        dbPatch.type = patch.type === "Percentage" ? "percent"
-            : patch.type === "Flat" ? "flat"
-            : "free_delivery";
+  const addCoupon = useCallback(
+    async (c: Coupon) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setCoupons((prev) => {
+          const list = [c, ...prev];
+          save("nongor_admin_coupons", list);
+          return list;
+        });
+        return;
       }
-      if (patch.value !== undefined) dbPatch.value = patch.value;
-      if (patch.minOrder !== undefined) dbPatch.minimum_order = patch.minOrder;
-      if (patch.expiry !== undefined) dbPatch.expires_at = patch.expiry ? new Date(patch.expiry).toISOString() : null;
-      if (patch.active !== undefined) dbPatch.is_active = patch.active;
 
-      await supabase.from("coupons").update(dbPatch).eq("code", code.toUpperCase());
+      try {
+        await supabase.from("coupons").insert({
+          code: c.code.toUpperCase(),
+          type: c.type === "Percentage" ? "percent" : c.type === "Flat" ? "flat" : "free_delivery",
+          value: c.value,
+          minimum_order: c.minOrder,
+          expires_at: c.expiry ? new Date(c.expiry).toISOString() : null,
+          is_active: c.active,
+          used_count: 0,
+        });
 
-      const dbCoupons = await adminGetAllCoupons();
-      setCoupons(dbCoupons.map(dbC => ({
-        code: dbC.code,
-        type: dbC.type === 'percent' ? 'Percentage'
-            : dbC.type === 'flat' ? 'Flat'
-            : 'Free Delivery',
-        value: dbC.value,
-        minOrder: dbC.minimum_order,
-        expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : '2026-12-31',
-        uses: dbC.used_count,
-        active: dbC.is_active,
-      })));
-    } catch (err) {
-      console.error("updateCoupon error:", err);
-    }
-  }, []);
+        const dbCoupons = await adminGetAllCoupons();
+        setCoupons(
+          dbCoupons.map((dbC) => ({
+            code: dbC.code,
+            type:
+              dbC.type === "percent"
+                ? "Percentage"
+                : dbC.type === "flat"
+                  ? "Flat"
+                  : "Free Delivery",
+            value: dbC.value,
+            minOrder: dbC.minimum_order,
+            expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : "2026-12-31",
+            uses: dbC.used_count,
+            active: dbC.is_active,
+          })),
+        );
+      } catch (err) {
+        console.error("addCoupon error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
-  const deleteCoupon = useCallback(async (code: string) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setCoupons((prev) => {
-        const list = prev.filter((c) => c.code !== code);
-        save("nongor_admin_coupons", list);
-        return list;
-      });
-      return;
-    }
+  const updateCoupon = useCallback(
+    async (code: string, patch: Partial<Coupon>) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setCoupons((prev) => {
+          const list = prev.map((c) => (c.code === code ? { ...c, ...patch } : c));
+          save("nongor_admin_coupons", list);
+          return list;
+        });
+        return;
+      }
 
-    try {
-      await supabase.from("coupons").delete().eq("code", code.toUpperCase());
+      try {
+        const dbPatch: Record<string, unknown> = {};
+        if (patch.type !== undefined) {
+          dbPatch.type =
+            patch.type === "Percentage"
+              ? "percent"
+              : patch.type === "Flat"
+                ? "flat"
+                : "free_delivery";
+        }
+        if (patch.value !== undefined) dbPatch.value = patch.value;
+        if (patch.minOrder !== undefined) dbPatch.minimum_order = patch.minOrder;
+        if (patch.expiry !== undefined)
+          dbPatch.expires_at = patch.expiry ? new Date(patch.expiry).toISOString() : null;
+        if (patch.active !== undefined) dbPatch.is_active = patch.active;
 
-      const dbCoupons = await adminGetAllCoupons();
-      setCoupons(dbCoupons.map(dbC => ({
-        code: dbC.code,
-        type: dbC.type === 'percent' ? 'Percentage'
-            : dbC.type === 'flat' ? 'Flat'
-            : 'Free Delivery',
-        value: dbC.value,
-        minOrder: dbC.minimum_order,
-        expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : '2026-12-31',
-        uses: dbC.used_count,
-        active: dbC.is_active,
-      })));
-    } catch (err) {
-      console.error("deleteCoupon error:", err);
-    }
-  }, []);
+        await supabase.from("coupons").update(dbPatch).eq("code", code.toUpperCase());
+
+        const dbCoupons = await adminGetAllCoupons();
+        setCoupons(
+          dbCoupons.map((dbC) => ({
+            code: dbC.code,
+            type:
+              dbC.type === "percent"
+                ? "Percentage"
+                : dbC.type === "flat"
+                  ? "Flat"
+                  : "Free Delivery",
+            value: dbC.value,
+            minOrder: dbC.minimum_order,
+            expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : "2026-12-31",
+            uses: dbC.used_count,
+            active: dbC.is_active,
+          })),
+        );
+      } catch (err) {
+        console.error("updateCoupon error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
+
+  const deleteCoupon = useCallback(
+    async (code: string) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setCoupons((prev) => {
+          const list = prev.filter((c) => c.code !== code);
+          save("nongor_admin_coupons", list);
+          return list;
+        });
+        return;
+      }
+
+      try {
+        await supabase.from("coupons").delete().eq("code", code.toUpperCase());
+
+        const dbCoupons = await adminGetAllCoupons();
+        setCoupons(
+          dbCoupons.map((dbC) => ({
+            code: dbC.code,
+            type:
+              dbC.type === "percent"
+                ? "Percentage"
+                : dbC.type === "flat"
+                  ? "Flat"
+                  : "Free Delivery",
+            value: dbC.value,
+            minOrder: dbC.minimum_order,
+            expiry: dbC.expires_at ? dbC.expires_at.slice(0, 10) : "2026-12-31",
+            uses: dbC.used_count,
+            active: dbC.is_active,
+          })),
+        );
+      } catch (err) {
+        console.error("deleteCoupon error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
   /* ───── Settings actions ───── */
-  const updateSetting = useCallback(async (key: string, value: string) => {
-    if (!isSupabaseConfigured || isMockAdmin) {
-      setSettings((prev) => {
-        const list = { ...prev, [key]: value };
-        save("nongor_admin_settings", list);
-        return list;
-      });
-      return;
-    }
+  const updateSetting = useCallback(
+    async (key: string, value: string) => {
+      if (!isSupabaseConfigured || isMockAdmin) {
+        setSettings((prev) => {
+          const list = { ...prev, [key]: value };
+          save("nongor_admin_settings", list);
+          return list;
+        });
+        return;
+      }
 
-    try {
-      await adminUpdateSetting(key, value);
-      const dbSettings = await getSettings();
-      setSettings(dbSettings);
-    } catch (err) {
-      console.error("updateSetting error:", err);
-    }
-  }, []);
+      try {
+        await adminUpdateSetting(key, value);
+        const dbSettings = await getSettings();
+        setSettings(dbSettings);
+      } catch (err) {
+        console.error("updateSetting error:", err);
+      }
+    },
+    [isMockAdmin],
+  );
 
   return (
     <Ctx.Provider

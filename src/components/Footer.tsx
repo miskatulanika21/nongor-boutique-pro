@@ -11,7 +11,9 @@ export function Footer() {
         <div className="col-span-2 md:col-span-5">
           <Logo dark />
           <p className="mt-5 text-sm text-primary-foreground/70 max-w-sm leading-relaxed">
-            <span className="font-bengali text-gold">নোঙর</span> — a Bangladeshi handmade women's clothing house. Every kurti is hand-stitched by skilled artisans, rooted in cultural craft and built to last.
+            <span className="font-bengali text-gold">নোঙর</span> — a Bangladeshi handmade women's
+            clothing house. Every kurti is hand-stitched by skilled artisans, rooted in cultural
+            craft and built to last.
           </p>
           <div className="mt-7 flex gap-3">
             <a
@@ -34,29 +36,70 @@ export function Footer() {
         <div className="md:col-span-2">
           <h4 className="text-[11px] uppercase tracking-[0.22em] text-gold mb-4">Shop</h4>
           <ul className="space-y-2.5 text-sm text-primary-foreground/75">
-            <li><Link to="/shop" className="hover:text-gold transition">All Kurti</Link></li>
-            <li><Link to="/shop" className="hover:text-gold transition">New Arrivals</Link></li>
-            <li><Link to="/shop" className="hover:text-gold transition">Best Sellers</Link></li>
-            <li><Link to="/shop" className="hover:text-gold transition">Festive</Link></li>
+            <li>
+              <Link to="/shop" className="hover:text-gold transition">
+                All Kurti
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="hover:text-gold transition">
+                New Arrivals
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="hover:text-gold transition">
+                Best Sellers
+              </Link>
+            </li>
+            <li>
+              <Link to="/shop" className="hover:text-gold transition">
+                Festive
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div className="md:col-span-2">
           <h4 className="text-[11px] uppercase tracking-[0.22em] text-gold mb-4">Help</h4>
           <ul className="space-y-2.5 text-sm text-primary-foreground/75">
-            <li><Link to="/track-order" className="hover:text-gold transition">Track Order</Link></li>
-            <li><Link to="/size-guide" className="hover:text-gold transition">Size Guide</Link></li>
-            <li><Link to="/return-policy" className="hover:text-gold transition">Return & Exchange</Link></li>
-            <li><Link to="/about" className="hover:text-gold transition">Contact Us</Link></li>
+            <li>
+              <Link to="/track-order" className="hover:text-gold transition">
+                Track Order
+              </Link>
+            </li>
+            <li>
+              <Link to="/size-guide" className="hover:text-gold transition">
+                Size Guide
+              </Link>
+            </li>
+            <li>
+              <Link to="/return-policy" className="hover:text-gold transition">
+                Return & Exchange
+              </Link>
+            </li>
+            <li>
+              <Link to="/about" className="hover:text-gold transition">
+                Contact Us
+              </Link>
+            </li>
           </ul>
         </div>
 
         <div className="md:col-span-3">
           <h4 className="text-[11px] uppercase tracking-[0.22em] text-gold mb-4">Visit Us</h4>
           <ul className="space-y-3 text-sm text-primary-foreground/75">
-            <li className="flex items-start gap-2.5"><MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" /><span>Dhanmondi 27, Dhaka, Bangladesh</span></li>
-            <li className="flex items-center gap-2.5"><Phone className="h-4 w-4 text-gold" /><span>+880 1700-000000</span></li>
-            <li className="flex items-center gap-2.5"><Mail className="h-4 w-4 text-gold" /><span>hello@nongor.com.bd</span></li>
+            <li className="flex items-start gap-2.5">
+              <MapPin className="h-4 w-4 text-gold mt-0.5 shrink-0" />
+              <span>Dhanmondi 27, Dhaka, Bangladesh</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Phone className="h-4 w-4 text-gold" />
+              <span>+880 1700-000000</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Mail className="h-4 w-4 text-gold" />
+              <span>hello@nongor.com.bd</span>
+            </li>
           </ul>
         </div>
       </div>
@@ -68,9 +111,15 @@ export function Footer() {
             Handmade with <Heart className="h-3 w-3 fill-gold text-gold" /> in Bangladesh
           </div>
           <div className="flex gap-4">
-            <Link to="/privacy-policy" className="hover:text-gold transition">Privacy</Link>
-            <Link to="/return-policy" className="hover:text-gold transition">Returns</Link>
-            <Link to="/terms" className="hover:text-gold transition">Terms</Link>
+            <Link to="/privacy-policy" className="hover:text-gold transition">
+              Privacy
+            </Link>
+            <Link to="/return-policy" className="hover:text-gold transition">
+              Returns
+            </Link>
+            <Link to="/terms" className="hover:text-gold transition">
+              Terms
+            </Link>
           </div>
         </div>
       </div>

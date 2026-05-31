@@ -1,5 +1,17 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Search, Heart, ShoppingBag, User, Menu, X, Home, Store, Sparkles, LogIn, Shield } from "lucide-react";
+import {
+  Search,
+  Heart,
+  ShoppingBag,
+  User,
+  Menu,
+  X,
+  Home,
+  Store,
+  Sparkles,
+  LogIn,
+  Shield,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { useShop } from "@/store/shop";
@@ -32,9 +44,8 @@ export function Navbar() {
   const openSearch = useCallback(() => setSearchOpen(true), []);
   useSearchShortcut(openSearch);
 
-  const userInitial = profile?.fullName?.charAt(0)?.toUpperCase()
-    || profile?.email?.charAt(0)?.toUpperCase()
-    || "";
+  const userInitial =
+    profile?.fullName?.charAt(0)?.toUpperCase() || profile?.email?.charAt(0)?.toUpperCase() || "";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -42,7 +53,6 @@ export function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
 
   return (
     <>
@@ -69,13 +79,24 @@ export function Navbar() {
         <div className="container-narrow flex items-center justify-between h-16 md:h-20">
           <div className="flex items-center gap-2 md:gap-10">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger className="md:hidden p-2 -ml-2 rounded-full hover:bg-cream transition" aria-label="Open menu">
+              <SheetTrigger
+                className="md:hidden p-2 -ml-2 rounded-full hover:bg-cream transition"
+                aria-label="Open menu"
+              >
                 <Menu className="h-5 w-5" />
               </SheetTrigger>
-              <SheetContent side="left" className="w-[86%] sm:max-w-sm bg-ivory border-r border-hairline p-0">
+              <SheetContent
+                side="left"
+                className="w-[86%] sm:max-w-sm bg-ivory border-r border-hairline p-0"
+              >
                 <div className="p-6 flex items-center justify-between border-b border-hairline">
                   <Logo />
-                  <button onClick={() => setMobileOpen(false)} className="p-2 rounded-full hover:bg-cream"><X className="h-5 w-5" /></button>
+                  <button
+                    onClick={() => setMobileOpen(false)}
+                    className="p-2 rounded-full hover:bg-cream"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
                 <nav className="p-4 flex flex-col">
                   {nav.map((n, i) => (
@@ -89,18 +110,38 @@ export function Navbar() {
                     </Link>
                   ))}
                   {isAuthenticated ? (
-                    <Link to="/account" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60 flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-[10px] font-bold">{userInitial}</div>
+                    <Link
+                      to="/account"
+                      onClick={() => setMobileOpen(false)}
+                      className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60 flex items-center gap-2"
+                    >
+                      <div className="h-6 w-6 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-[10px] font-bold">
+                        {userInitial}
+                      </div>
                       My Account
                     </Link>
                   ) : (
-                    <Link to="/login" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60 flex items-center gap-2">
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60 flex items-center gap-2"
+                    >
                       <LogIn className="h-4 w-4" /> Sign In
                     </Link>
                   )}
-                  <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60">Wishlist</Link>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setMobileOpen(false)}
+                    className="py-3.5 px-3 text-base text-foreground/85 border-b border-hairline/60"
+                  >
+                    Wishlist
+                  </Link>
                   {isAdmin && (
-                    <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="py-3.5 px-3 mt-4 text-xs uppercase tracking-[0.25em] text-gold-deep flex items-center gap-2">
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setMobileOpen(false)}
+                      className="py-3.5 px-3 mt-4 text-xs uppercase tracking-[0.25em] text-gold-deep flex items-center gap-2"
+                    >
                       <Shield className="h-3.5 w-3.5" /> Admin Panel →
                     </Link>
                   )}
@@ -134,14 +175,26 @@ export function Navbar() {
               aria-label="Search products"
             >
               <Search className="h-4 w-4 text-muted-foreground" />
-              <span className="flex-1 text-sm text-muted-foreground/80">Search handmade kurti…</span>
-              <kbd className="text-[10px] tracking-wider text-muted-foreground border border-hairline rounded px-1.5 py-0.5 bg-ivory">⌘K</kbd>
+              <span className="flex-1 text-sm text-muted-foreground/80">
+                Search handmade kurti…
+              </span>
+              <kbd className="text-[10px] tracking-wider text-muted-foreground border border-hairline rounded px-1.5 py-0.5 bg-ivory">
+                ⌘K
+              </kbd>
             </button>
-            <button onClick={openSearch} className="lg:hidden p-2.5 rounded-full hover:bg-cream transition" aria-label="Search">
+            <button
+              onClick={openSearch}
+              className="lg:hidden p-2.5 rounded-full hover:bg-cream transition"
+              aria-label="Search"
+            >
               <Search className="h-5 w-5" />
             </button>
 
-            <Link to="/wishlist" className="p-2.5 rounded-full hover:bg-cream transition relative hidden sm:inline-flex" aria-label="Wishlist">
+            <Link
+              to="/wishlist"
+              className="p-2.5 rounded-full hover:bg-cream transition relative hidden sm:inline-flex"
+              aria-label="Wishlist"
+            >
               <Heart className="h-5 w-5" />
               {wishlist.length > 0 && (
                 <span className="absolute top-1 right-1 bg-gold text-gold-foreground text-[10px] rounded-full h-4 w-4 grid place-items-center font-semibold shadow-soft">
@@ -149,7 +202,11 @@ export function Navbar() {
                 </span>
               )}
             </Link>
-            <Link to="/cart" className="p-2.5 rounded-full hover:bg-cream transition relative" aria-label="Cart">
+            <Link
+              to="/cart"
+              className="p-2.5 rounded-full hover:bg-cream transition relative"
+              aria-label="Cart"
+            >
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute top-1 right-1 bg-maroon text-primary-foreground text-[10px] rounded-full h-4 min-w-4 px-1 grid place-items-center font-semibold shadow-soft animate-fade-up">
@@ -157,9 +214,15 @@ export function Navbar() {
                 </span>
               )}
             </Link>
-            <Link to={isAuthenticated ? "/account" : "/login"} className="p-2.5 rounded-full hover:bg-cream transition hidden sm:inline-flex relative" aria-label={isAuthenticated ? "Account" : "Sign In"}>
+            <Link
+              to={isAuthenticated ? "/account" : "/login"}
+              className="p-2.5 rounded-full hover:bg-cream transition hidden sm:inline-flex relative"
+              aria-label={isAuthenticated ? "Account" : "Sign In"}
+            >
               {isAuthenticated ? (
-                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-[8px] font-bold">{userInitial}</div>
+                <div className="h-5 w-5 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-[8px] font-bold">
+                  {userInitial}
+                </div>
               ) : (
                 <User className="h-5 w-5" />
               )}
@@ -173,7 +236,6 @@ export function Navbar() {
   );
 }
 
-
 export function MobileBottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { cartCount, wishlist } = useShop();
@@ -183,7 +245,11 @@ export function MobileBottomNav() {
     { to: "/shop", icon: Store, label: "Shop" },
     { to: "/wishlist", icon: Heart, label: "Saved", badge: wishlist.length },
     { to: "/cart", icon: ShoppingBag, label: "Bag", badge: cartCount },
-    { to: isAuthenticated ? "/account" : "/login", icon: User, label: isAuthenticated ? "Account" : "Sign In" },
+    {
+      to: isAuthenticated ? "/account" : "/login",
+      icon: User,
+      label: isAuthenticated ? "Account" : "Sign In",
+    },
   ] as const;
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 pb-safe">
@@ -202,15 +268,24 @@ export function MobileBottomNav() {
                 {active && (
                   <span className="absolute top-1.5 h-1 w-8 rounded-full bg-gold animate-fade-up" />
                 )}
-                <span className={`relative grid place-items-center transition-all duration-300 ${active ? "text-maroon scale-110" : "text-muted-foreground"}`}>
-                  <Icon className={`h-[18px] w-[18px] ${active ? "fill-maroon/10" : ""}`} strokeWidth={active ? 2.2 : 1.8} />
+                <span
+                  className={`relative grid place-items-center transition-all duration-300 ${active ? "text-maroon scale-110" : "text-muted-foreground"}`}
+                >
+                  <Icon
+                    className={`h-[18px] w-[18px] ${active ? "fill-maroon/10" : ""}`}
+                    strokeWidth={active ? 2.2 : 1.8}
+                  />
                   {badge > 0 && (
                     <span className="absolute -top-1.5 -right-2 bg-maroon text-primary-foreground text-[9px] rounded-full h-4 min-w-4 px-1 grid place-items-center font-semibold">
                       {badge}
                     </span>
                   )}
                 </span>
-                <span className={`font-medium tracking-wide ${active ? "text-maroon" : "text-muted-foreground"}`}>{it.label}</span>
+                <span
+                  className={`font-medium tracking-wide ${active ? "text-maroon" : "text-muted-foreground"}`}
+                >
+                  {it.label}
+                </span>
               </Link>
             );
           })}

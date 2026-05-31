@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { getAllCustomers, type Customer } from '@/services/customers';
+import { useState, useEffect } from "react";
+import { getAllCustomers, type Customer } from "@/services/customers";
 
 export function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -9,8 +9,8 @@ export function useCustomers() {
   const fetchCustomers = () => {
     setLoading(true);
     getAllCustomers()
-      .then(data => setCustomers(data))
-      .catch(err => setError(err.message || 'Failed to fetch customers'))
+      .then((data) => setCustomers(data))
+      .catch((err) => setError(err.message || "Failed to fetch customers"))
       .finally(() => setLoading(false));
   };
 

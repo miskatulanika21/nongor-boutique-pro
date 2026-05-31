@@ -24,7 +24,7 @@ function Page() {
   });
 
   const needsVerificationCount = nonCodOrders.filter(
-    (o) => o.paymentStatus === "Verification Needed" || o.paymentStatus === "Pending"
+    (o) => o.paymentStatus === "Verification Needed" || o.paymentStatus === "Pending",
   ).length;
 
   const approvedCount = nonCodOrders.filter((o) => o.paymentStatus === "Paid").length;
@@ -50,13 +50,32 @@ function Page() {
 
   return (
     <div>
-      <PageHeader title="Payment Verification" subtitle="Verify bKash, Nagad, Rocket & card payments" />
+      <PageHeader
+        title="Payment Verification"
+        subtitle="Verify bKash, Nagad, Rocket & card payments"
+      />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { l: "Needs Verification", v: String(needsVerificationCount), c: "bg-orange-50 text-orange-800 border border-orange-200" },
-          { l: "Approved Payments", v: String(approvedCount), c: "bg-green-50 text-green-800 border border-green-200" },
-          { l: "Rejected", v: String(rejectedCount), c: "bg-red-50 text-red-800 border border-red-200" },
-          { l: "Verified Volume", v: taka(totalMfsVolume), c: "bg-pink-50 text-pink-800 border border-pink-200" },
+          {
+            l: "Needs Verification",
+            v: String(needsVerificationCount),
+            c: "bg-orange-50 text-orange-800 border border-orange-200",
+          },
+          {
+            l: "Approved Payments",
+            v: String(approvedCount),
+            c: "bg-green-50 text-green-800 border border-green-200",
+          },
+          {
+            l: "Rejected",
+            v: String(rejectedCount),
+            c: "bg-red-50 text-red-800 border border-red-200",
+          },
+          {
+            l: "Verified Volume",
+            v: taka(totalMfsVolume),
+            c: "bg-pink-50 text-pink-800 border border-pink-200",
+          },
         ].map((s) => (
           <div key={s.l} className={`rounded-xl p-4 ${s.c}`}>
             <div className="text-xs font-semibold uppercase tracking-wider">{s.l}</div>
@@ -113,7 +132,10 @@ function Page() {
                 </td>
                 <td className="p-3 font-semibold">{taka(o.total)}</td>
                 <td className="p-3">
-                  <div className="h-12 w-10 bg-secondary rounded grid place-items-center cursor-pointer hover:bg-cream border transition" title="View receipt attachment">
+                  <div
+                    className="h-12 w-10 bg-secondary rounded grid place-items-center cursor-pointer hover:bg-cream border transition"
+                    title="View receipt attachment"
+                  >
                     <ImageIcon className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </td>
@@ -143,10 +165,13 @@ function Page() {
                   </button>
                   <button
                     onClick={() => handleReset(o.id)}
-                    disabled={o.paymentStatus === "Pending" || o.paymentStatus === "Verification Needed"}
+                    disabled={
+                      o.paymentStatus === "Pending" || o.paymentStatus === "Verification Needed"
+                    }
                     className={`h-8 w-8 inline-grid place-items-center rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition cursor-pointer ml-1.5 ${
-                      (o.paymentStatus === "Pending" || o.paymentStatus === "Verification Needed")
-                        ? "opacity-30 cursor-not-allowed" : ""
+                      o.paymentStatus === "Pending" || o.paymentStatus === "Verification Needed"
+                        ? "opacity-30 cursor-not-allowed"
+                        : ""
                     }`}
                     title="Revert back to Pending Verification"
                   >
