@@ -24,17 +24,18 @@ export function usePublishedProducts() {
     () => mockProducts.filter(p => p.status === 'Published')
   );
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     getPublishedProducts()
-      .then(data => { if (mounted && data.length > 0) setProducts(toMockProducts(data)); })
-      .catch(() => {}) // keep mock fallback
+      .then(data => { if (mounted) setProducts(toMockProducts(data)); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load products'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
-  return { products, loading };
+  return { products, loading, error };
 }
 
 /** Single product by slug (for product detail page) */
@@ -42,17 +43,18 @@ export function useProductBySlug(slug: string) {
   const mockProduct = mockProducts.find(p => p.slug === slug) ?? null;
   const [product, setProduct] = useState<Product | null>(mockProduct);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     getProductBySlug(slug)
-      .then(data => { if (mounted && data) setProduct(toMockProduct(data)); })
-      .catch(() => {})
+      .then(data => { if (mounted) setProduct(data ? toMockProduct(data) : null); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load product'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [slug]);
 
-  return { product, loading };
+  return { product, loading, error };
 }
 
 /** New arrivals for homepage section */
@@ -61,17 +63,18 @@ export function useNewArrivals(limit = 4) {
     () => mockProducts.filter(p => p.isNew).slice(0, limit)
   );
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     getNewArrivals()
-      .then(data => { if (mounted && data.length > 0) setProducts(toMockProducts(data).slice(0, limit)); })
-      .catch(() => {})
+      .then(data => { if (mounted) setProducts(toMockProducts(data).slice(0, limit)); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load new arrivals'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [limit]);
 
-  return { products, loading };
+  return { products, loading, error };
 }
 
 /** Best sellers for homepage section */
@@ -80,57 +83,61 @@ export function useBestSellers(limit = 4) {
     () => mockProducts.filter(p => p.isBestSeller).slice(0, limit)
   );
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     getBestSellers()
-      .then(data => { if (mounted && data.length > 0) setProducts(toMockProducts(data).slice(0, limit)); })
-      .catch(() => {})
+      .then(data => { if (mounted) setProducts(toMockProducts(data).slice(0, limit)); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load best sellers'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [limit]);
 
-  return { products, loading };
+  return { products, loading, error };
 }
 
 /** All products for admin panel (includes draft/archived) */
 export function useAdminProducts() {
   const [products, setProducts] = useState<Product[]>(() => mockProducts);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     adminGetAllProducts()
-      .then(data => { if (mounted && data.length > 0) setProducts(toMockProducts(data)); })
-      .catch(() => {})
+      .then(data => { if (mounted) setProducts(toMockProducts(data)); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load products'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
   const refetch = () => {
     setLoading(true);
+    setError(null);
     adminGetAllProducts()
-      .then(data => { if (data.length > 0) setProducts(toMockProducts(data)); })
-      .catch(() => {})
+      .then(data => { setProducts(toMockProducts(data)); })
+      .catch((err) => setError(err.message ?? 'Failed to reload products'))
       .finally(() => setLoading(false));
   };
 
-  return { products, loading, refetch };
+  return { products, loading, error, refetch };
 }
 
 /** All published products as a flat list (for instagram grid, etc.) */
 export function useAllProducts() {
   const [products, setProducts] = useState<Product[]>(() => mockProducts);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     getPublishedProducts()
-      .then(data => { if (mounted && data.length > 0) setProducts(toMockProducts(data)); })
-      .catch(() => {})
+      .then(data => { if (mounted) setProducts(toMockProducts(data)); })
+      .catch((err) => { if (mounted) setError(err.message ?? 'Failed to load products'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, []);
 
-  return { products, loading };
+  return { products, loading, error };
 }

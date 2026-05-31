@@ -4,6 +4,7 @@ import appCss from "../styles.css?url";
 import { ShopProvider } from "@/store/shop";
 import { AuthProvider } from "@/store/auth";
 import { AdminProvider } from "@/store/admin";
+import { AuthProvider } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -62,8 +63,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head><HeadContent /></head>
+    <html lang="en-BD">
+      <head>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <HeadContent />
+      </head>
       <body>{children}<Scripts /></body>
     </html>
   );

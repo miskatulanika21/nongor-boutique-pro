@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, TableShell, StatusPill } from "@/components/admin/ui";
 import { useAdmin } from "@/store/admin";
 import { taka } from "@/lib/format";
-import { Plus, Search, Edit, Trash2, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, X, UploadCloud, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { Product } from "@/data/mock";
+import { uploadProductImage, deleteProductImage } from "@/services/storage";
 
 export const Route = createFileRoute("/admin/products")({ component: Page });
 
@@ -91,6 +92,35 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
   const [isNew, setIsNew] = useState(initial?.isNew ?? false);
   const [isBest, setIsBest] = useState(initial?.isBestSeller ?? false);
   const [featured, setFeatured] = useState(initial?.featured ?? false);
+  const [images, setImages] = useState<string[]>(initial?.images ?? []);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setUploading(true);
+    try {
+      const files = Array.from(e.target.files);
+      const tempSlug = slug || name.toLowerCase().replace(/\s+/g, "-") || "new-product";
+      for (const file of files) {
+        const url = await uploadProductImage(file, tempSlug);
+        if (url) {
+          setImages(prev => [...prev, url]);
+          toast.success("Image uploaded!");
+        } else {
+          toast.error("Failed to upload image");
+        }
+      }
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = async (url: string) => {
+    setImages(prev => prev.filter(img => img !== url));
+    await deleteProductImage(url);
+    toast.success("Image removed");
+  };
 
   const submit = () => {
     onSave({
@@ -105,7 +135,7 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
       stock: Number(stock),
       sizes: sizes.split(",").map((s) => s.trim()).filter(Boolean),
       colors: initial?.colors ?? [{ name: "Maroon", hex: "#6b1f2a" }],
-      images: initial?.images ?? ["https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80"],
+      images: images.length > 0 ? images : ["https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80"],
       collection: initial?.collection ?? ["Handmade Kurti"],
       rating: initial?.rating ?? 4.5,
       reviewCount: initial?.reviewCount ?? 0,
@@ -129,7 +159,27 @@ function ProductForm({ initial, onSave }: { initial: Product | null; onSave: (da
       <div><label className="text-xs text-muted-foreground">Stock</label><input type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary text-sm" /></div>
       <div className="md:col-span-2"><label className="text-xs text-muted-foreground">Description</label><textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary" /></div>
       <div className="md:col-span-2"><label className="text-xs text-muted-foreground">Sizes (comma separated)</label><input value={sizes} onChange={(e) => setSizes(e.target.value)} placeholder="S, M, L, XL" className="mt-1 w-full px-3 py-2 rounded-lg bg-secondary" /></div>
-      <div className="md:col-span-2 border-2 border-dashed border-border rounded-lg p-6 text-center text-sm text-muted-foreground">Drop product images here (mock — upload not wired)</div>
+      
+      <div className="md:col-span-2 mt-2">
+        <label className="text-xs text-muted-foreground mb-1 block">Product Images (up to 4)</label>
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {images.map((url, i) => (
+            <div key={i} className="relative h-24 w-20 shrink-0 rounded-lg overflow-hidden border border-border group">
+              <img src={url} className="h-full w-full object-cover" alt="Product upload" />
+              <button onClick={() => removeImage(url)} className="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500/90 text-white grid place-items-center opacity-0 group-hover:opacity-100 transition">
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          {images.length < 4 && (
+            <label className="h-24 w-20 shrink-0 rounded-lg border-2 border-dashed border-border bg-secondary flex flex-col items-center justify-center cursor-pointer hover:bg-border/30 transition text-muted-foreground">
+              {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
+              <span className="text-[10px] mt-1 font-medium">{uploading ? "..." : "Upload"}</span>
+              <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" disabled={uploading} />
+            </label>
+          )}
+        </div>
+      </div>
       <div className="md:col-span-2 flex gap-4 text-sm">
         <label className="flex items-center gap-2"><input type="checkbox" checked={featured} onChange={(e) => setFeatured(e.target.checked)} className="accent-maroon" /> Featured</label>
         <label className="flex items-center gap-2"><input type="checkbox" checked={isNew} onChange={(e) => setIsNew(e.target.checked)} className="accent-maroon" /> New Arrival</label>

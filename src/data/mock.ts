@@ -22,6 +22,7 @@ export type Product = {
   isBestSeller?: boolean;
   featured?: boolean;
   status: "Published" | "Draft" | "Archived";
+  sku?: string | null;
 };
 
 const img = (seed: string, w = 800, h = 1000) =>

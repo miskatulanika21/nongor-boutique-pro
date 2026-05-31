@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Package, ShoppingBag, CreditCard, Truck, Users, FolderTree, Ticket, FileImage, Boxes, Star, Settings, Search, Bell, ChevronDown, X, Menu, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
 import { useAdmin } from "@/store/admin";
 
 const links = [
@@ -25,8 +25,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
   const active = links.find((l) => path.startsWith(l.to));
-  const { logout } = useAdmin();
+  const { logout, auth } = useAdmin();
   const navigate = useNavigate();
+
+  const adminDisplay = useMemo(() => {
+    const email = auth.email || "admin@nongor.com";
+    const name = email.split("@")[0];
+    const initial = name.charAt(0).toUpperCase();
+    const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+    return { email, initial, displayName };
+  }, [auth.email]);
 
   const handleLogout = async () => {
     await logout();
@@ -120,9 +128,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-maroon ring-2 ring-ivory" />
               </button>
               <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-cream transition">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-xs font-semibold shadow-soft">N</div>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-maroon to-maroon-deep text-primary-foreground grid place-items-center text-xs font-semibold shadow-soft">{adminDisplay.initial}</div>
                 <div className="hidden md:block text-left leading-tight">
-                  <div className="text-xs font-semibold">Nongor Owner</div>
+                  <div className="text-xs font-semibold">{adminDisplay.displayName}</div>
                   <div className="text-[10px] text-muted-foreground">Admin</div>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 hidden md:block text-muted-foreground" />

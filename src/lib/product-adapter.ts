@@ -71,6 +71,10 @@ export function toMockProduct(p: ProductWithDetails): Product {
   if (p.is_featured) collection.push('Festive Collection');
   if (collection.length === 0) collection.push('Handmade Kurti');
 
+  // Find a SKU from active variants
+  const activeVariantWithSku = p.variants.find(v => v.is_active && v.sku);
+  const sku = activeVariantWithSku?.sku ?? p.variants[0]?.sku ?? null;
+
   return {
     id: p.id,
     slug: p.slug,
@@ -97,6 +101,7 @@ export function toMockProduct(p: ProductWithDetails): Product {
     status: p.status === 'published' ? 'Published'
           : p.status === 'draft' ? 'Draft'
           : 'Archived',
+    sku,
   };
 }
 

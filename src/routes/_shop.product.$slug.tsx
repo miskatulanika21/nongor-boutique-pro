@@ -1,8 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { taka } from "@/lib/format";
 import { getStock, isOutOfStock, isLowStock } from "@/lib/stock";
-import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle, Share2, ZoomIn } from "lucide-react";
+import { Heart, ShoppingBag, Truck, RotateCcw, ShieldCheck, Sparkles, Minus, Plus, AlertTriangle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import { useShop } from "@/store/shop";
@@ -10,8 +10,6 @@ import { useProductBySlug, usePublishedProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { pushRecentlyViewed, getRecentlyViewed } from "@/lib/recently-viewed";
-import { ProductReviews } from "@/components/ProductReviews";
 
 import type { Product as ProductType } from "@/data/mock";
 
@@ -24,8 +22,34 @@ export const Route = createFileRoute("/_shop/product/$slug")({
 
 function Product() {
   const { slug } = Route.useParams();
-  const { product: p } = useProductBySlug(slug);
+  const { product: p, loading } = useProductBySlug(slug);
   const { products: allPublished } = usePublishedProducts();
+
+  if (loading) return (
+    <div className="container-narrow py-6 md:py-12">
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-14 animate-pulse">
+        <div className="aspect-[4/5] rounded-2xl bg-cream" />
+        <div className="space-y-4 py-4">
+          <div className="h-6 w-24 bg-cream rounded" />
+          <div className="h-10 w-3/4 bg-cream rounded" />
+          <div className="h-4 w-1/2 bg-cream rounded" />
+          <div className="h-12 w-1/3 bg-cream rounded" />
+          <div className="h-20 w-full bg-cream rounded" />
+          <div className="flex gap-2">{[1,2,3,4].map(i => <div key={i} className="h-11 w-11 bg-cream rounded-lg" />)}</div>
+          <div className="flex gap-3 mt-4"><div className="h-14 flex-1 bg-cream rounded-full" /><div className="h-14 flex-1 bg-cream rounded-full" /></div>
+        </div>
+      </div>
+    </div>
+  );
+
+  useEffect(() => {
+    if (p) {
+      document.title = `${p.name} — Nongor`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) metaDesc.setAttribute("content", p.description);
+    }
+  }, [p]);
+
   if (!p) return <div className="container-narrow py-20 text-center"><h1 className="font-display text-3xl">Product not found</h1></div>;
 
   const shop = useShop();
@@ -34,13 +58,8 @@ function Product() {
   const [color, setColor] = useState(p.colors[0].name);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
-  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null);
   const price = p.discountPrice ?? p.price;
-  const related = allPublished.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 4);
-
-  useEffect(() => { pushRecentlyViewed(p.id); }, [p.id]);
-  const recentIds = getRecentlyViewed().filter((id) => id !== p.id);
-  const recentlyViewed = allPublished.filter((x) => recentIds.includes(x.id)).slice(0, 4);
+  const related = allPublished.filter((x) => x.id !== p.id).slice(0, 4);
 
   const stock = getStock(p, size, color);
   const outOfStock = isOutOfStock(p, size, color);
@@ -53,51 +72,42 @@ function Product() {
   };
   const buyNow = () => { add(); nav({ to: "/checkout" }); };
 
-  const share = async () => {
-    const url = typeof window !== "undefined" ? window.location.href : "";
-    const shareData = { title: p.name, text: `${p.name} — Nongor`, url };
-    try {
-      if (typeof navigator !== "undefined" && (navigator as any).share) {
-        await (navigator as any).share(shareData);
-      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
-        toast.success("Link copied to clipboard");
-      }
-    } catch {
-      // user dismissed share
-    }
-  };
-
   return (
     <div className="container-narrow py-6 md:py-12">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": p.name,
+        "image": p.images,
+        "description": p.description,
+        "sku": p.sku,
+        "offers": {
+          "@type": "Offer",
+          "url": `https://nongor.com/product/${p.slug}`,
+          "priceCurrency": "BDT",
+          "price": p.discountPrice ?? p.price,
+          "availability": outOfStock ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+          "itemCondition": "https://schema.org/NewCondition"
+        },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": p.rating,
+          "reviewCount": p.reviewCount
+        }
+      }) }} />
       <nav className="text-xs text-muted-foreground mb-6">
         <Link to="/" className="hover:text-maroon">Home</Link> · <Link to="/shop" className="hover:text-maroon">Shop</Link> · <span className="text-foreground">{p.name}</span>
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-14">
         <div>
-          <div
-            className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft group cursor-zoom-in"
-            onMouseMove={(e) => {
-              const r = e.currentTarget.getBoundingClientRect();
-              setZoomPos({ x: ((e.clientX - r.left) / r.width) * 100, y: ((e.clientY - r.top) / r.height) * 100 });
-            }}
-            onMouseLeave={() => setZoomPos(null)}
-          >
-            <img
-              src={p.images[activeImg]}
-              alt={p.name}
-              className="w-full h-full object-cover transition-transform duration-500 ease-soft"
-              style={zoomPos ? { transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`, transform: "scale(1.8)" } : undefined}
-            />
-            <div className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-full bg-ivory/85 backdrop-blur text-maroon shadow-soft opacity-0 group-hover:opacity-100 transition pointer-events-none">
-              <ZoomIn className="h-4 w-4" />
-            </div>
+          <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-cream shadow-soft">
+            <img src={p.images[activeImg]} alt={p.name} className="w-full h-full object-cover" />
           </div>
           {p.images.length > 1 && (
             <div className="mt-3 flex gap-3">
               {p.images.map((src, i) => (
-                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent hover:border-gold/60"}`}>
+                <button key={i} onClick={() => setActiveImg(i)} className={`h-20 w-16 rounded-lg overflow-hidden border-2 transition ${activeImg === i ? "border-maroon" : "border-transparent"}`}>
                   <img src={src} alt="" className="w-full h-full object-cover" />
                 </button>
               ))}
@@ -176,11 +186,8 @@ function Product() {
               <ShoppingBag className="h-4 w-4" /> {outOfStock ? "Out of Stock" : "Add to Bag"}
             </button>
             <button onClick={buyNow} disabled={outOfStock} className="flex-1 border-2 border-maroon text-maroon hover:bg-maroon hover:text-primary-foreground rounded-full py-4 font-semibold tracking-wide transition disabled:opacity-50 disabled:cursor-not-allowed">Buy Now</button>
-            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Add to wishlist">
+            <button onClick={() => shop.toggleWishlist(p.id)} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition">
               <Heart className={`h-5 w-5 ${shop.wishlist.includes(p.id) ? "fill-maroon text-maroon" : ""}`} />
-            </button>
-            <button onClick={share} className="h-14 w-14 rounded-full border border-border grid place-items-center hover:border-maroon transition" aria-label="Share product">
-              <Share2 className="h-5 w-5" />
             </button>
           </div>
 
@@ -216,30 +223,12 @@ function Product() {
         </div>
       </div>
 
-      <ProductReviews productId={p.id} rating={p.rating} reviewCount={p.reviewCount} images={p.images} />
-
-
-
-
-      {related.length > 0 && (
-        <section className="mt-20">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">You may also love</div>
-          <h2 className="mt-2 font-display text-3xl text-foreground">Pair it with</h2>
-          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {related.map((r) => <ProductCard key={r.id} p={r} />)}
-          </div>
-        </section>
-      )}
-
-      {recentlyViewed.length > 0 && (
-        <section className="mt-20">
-          <div className="text-[11px] uppercase tracking-[0.3em] text-gold-deep font-medium">Recently viewed</div>
-          <h2 className="mt-2 font-display text-3xl text-foreground">Picked up where you left off</h2>
-          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
-            {recentlyViewed.map((r) => <ProductCard key={r.id} p={r} />)}
-          </div>
-        </section>
-      )}
+      <section className="mt-20">
+        <h2 className="font-display text-3xl text-foreground">Pair it with</h2>
+        <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-5">
+          {related.map((r) => <ProductCard key={r.id} p={r} />)}
+        </div>
+      </section>
     </div>
   );
 }

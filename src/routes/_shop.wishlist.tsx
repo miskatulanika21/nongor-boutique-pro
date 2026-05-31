@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { products } from "@/data/mock";
+import { usePublishedProducts } from "@/hooks/useProducts";
 import { useShop } from "@/store/shop";
 import { ProductCard } from "@/components/ProductCard";
-import { Heart } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/_shop/wishlist")({
   head: () => ({ meta: [{ title: "Wishlist — Nongor" }] }),
@@ -11,6 +11,17 @@ export const Route = createFileRoute("/_shop/wishlist")({
 
 function Wishlist() {
   const { wishlist } = useShop();
+  const { products, loading } = usePublishedProducts();
+
+  if (loading) {
+    return (
+      <div className="container-narrow py-20 text-center">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto text-maroon" />
+        <p className="text-sm text-muted-foreground mt-2">Loading wishlist…</p>
+      </div>
+    );
+  }
+
   const items = products.filter((p) => wishlist.includes(p.id));
   return (
     <div className="container-narrow py-10">

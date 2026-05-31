@@ -1,9 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Package, MapPin, Heart, RotateCcw, LogOut, Clock, ShieldCheck, Loader2 } from "lucide-react";
+import { User, Package, MapPin, Heart, RotateCcw, LogOut, Clock, Shield, Settings } from "lucide-react";
 import { useAdmin } from "@/store/admin";
-import { useAuth } from "@/store/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { products } from "@/data/mock";
 import { taka } from "@/lib/format";
 import { toast } from "sonner";
@@ -15,60 +15,83 @@ export const Route = createFileRoute("/_shop/account")({
 
 function Account() {
   const { orders } = useAdmin();
-  const { user, loading, isAuthenticated, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { isAuthenticated, isLoading, profile, isAdmin, signOut } = useAuth();
+  const nav = useNavigate();
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      navigate({ to: "/login", search: { redirect: "/account" } as never, replace: true });
+    if (!isLoading && !isAuthenticated) {
+      nav({ to: "/login", search: { redirect: "/account" } });
     }
-  }, [loading, isAuthenticated, navigate]);
+  }, [isLoading, isAuthenticated, nav]);
 
-  if (loading || !isAuthenticated || !user) {
+  if (isLoading) {
     return (
-      <div className="container-narrow py-24 grid place-items-center">
-        <Loader2 className="h-6 w-6 animate-spin text-maroon" />
+      <div className="container-narrow py-20 text-center">
+        <div className="animate-pulse text-muted-foreground text-sm">Loading your account…</div>
       </div>
     );
   }
 
-  const customerName = user.fullName ?? user.email.split("@")[0];
-  const customerPhone = user.phone ?? "—";
-  const customerEmail = user.email;
+  if (!isAuthenticated || !profile) {
+    return null; // Will redirect via useEffect
+  }
 
-  const customerOrders = orders.filter((o) => {
-    if (user.phone) {
-      const a = o.phone.replace(/\D/g, "");
-      const b = user.phone.replace(/\D/g, "");
-      if (a && b && (a.endsWith(b.slice(-9)) || b.endsWith(a.slice(-9)))) return true;
-    }
-    return o.customer.toLowerCase().trim() === customerName.toLowerCase().trim();
-  });
+  const customerName = profile.fullName || profile.email.split("@")[0];
+  const customerPhone = profile.phone || "";
+  const customerEmail = profile.email;
+
+  // Filter orders matching this customer
+  const customerOrders = isAdmin
+    ? orders // Admins see all orders
+    : orders.filter(
+        (o) =>
+          (customerPhone && o.phone.replace(/[-\s]/g, "") === customerPhone.replace(/[-\s]/g, "")) ||
+          o.customer.toLowerCase().trim() === customerName.toLowerCase().trim()
+      );
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success("Signed out");
-    navigate({ to: "/" });
+    toast.success("Signed out successfully");
+    nav({ to: "/login" });
   };
 
   return (
     <div className="container-narrow py-10">
-      <div className="flex flex-wrap items-center gap-4 justify-between">
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-cream grid place-items-center text-2xl text-maroon font-display font-semibold shadow-soft">
-            {customerName.charAt(0).toUpperCase()}
-          </div>
-          <div>
-            <h1 className="font-display text-3xl font-semibold">Welcome back, {customerName.split(" ")[0]}</h1>
-            <p className="text-sm text-muted-foreground">{customerEmail} · {customerPhone}</p>
-          </div>
+      {/* Profile header */}
+      <div className="flex items-center gap-4">
+        <div className="h-16 w-16 rounded-full bg-gradient-to-br from-maroon to-maroon-deep grid place-items-center text-2xl text-primary-foreground font-display font-semibold shadow-soft">
+          {customerName.charAt(0).toUpperCase()}
         </div>
-        {user.role === "admin" && (
-          <Link to="/admin/dashboard" className="inline-flex items-center gap-2 rounded-full bg-charcoal text-primary-foreground px-4 py-2 text-xs font-semibold tracking-wide hover:bg-charcoal/85 transition">
-            <ShieldCheck className="h-3.5 w-3.5 text-gold" /> Open Admin Panel
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-3xl font-semibold">Welcome back, {customerName.split(" ")[0]}</h1>
+          <p className="text-sm text-muted-foreground truncate">
+            {customerEmail}
+            {customerPhone && ` · ${customerPhone}`}
+          </p>
+        </div>
+        {/* Role badge */}
+        {isAdmin && (
+          <Link
+            to="/admin/dashboard"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-maroon to-maroon-deep text-primary-foreground text-xs font-semibold shadow-soft hover:shadow-elegant transition-all hover:-translate-y-0.5"
+          >
+            <Shield className="h-3.5 w-3.5" />
+            Admin Dashboard
           </Link>
         )}
       </div>
+
+      {/* Admin quick-access bar */}
+      {isAdmin && (
+        <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-cream/80 to-cream/40 border border-gold/15 flex items-center gap-3 sm:hidden">
+          <Shield className="h-4 w-4 text-gold-deep shrink-0" />
+          <span className="text-xs text-foreground/70 flex-1">You're signed in as <span className="font-semibold">Admin</span></span>
+          <Link to="/admin/dashboard" className="text-xs font-semibold text-maroon hover:underline">
+            Dashboard →
+          </Link>
+        </div>
+      )}
 
       <Tabs defaultValue="orders" className="mt-8">
         <TabsList className="bg-cream overflow-x-auto scrollbar-none w-full justify-start border-b border-border/40">
@@ -84,17 +107,20 @@ function Account() {
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             {[
               ["Full name", customerName],
-              ["Phone number", customerPhone],
+              ["Phone number", customerPhone || "Not set"],
               ["Email address", customerEmail],
-              ["Account type", user.role === "admin" ? "Admin" : "Customer"],
+              ["Role", isAdmin ? "Admin" : "Customer"],
             ].map(([l, v]) => (
               <div key={l}>
                 <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">{l}</div>
-                <div className="font-medium text-foreground text-sm">{v}</div>
+                <div className="font-medium text-foreground text-sm flex items-center gap-2">
+                  {v}
+                  {l === "Role" && isAdmin && <Shield className="h-3.5 w-3.5 text-gold-deep" />}
+                </div>
               </div>
             ))}
           </div>
-          <button onClick={() => toast.info("Profile editing is coming soon")} className="mt-6 px-5 py-2 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
+          <button onClick={() => toast.info("Profile editing coming soon")} className="mt-6 px-5 py-2 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
             Edit Profile
           </button>
         </TabsContent>
@@ -128,7 +154,7 @@ function Account() {
               <div className="font-semibold text-sm">{i === 1 ? "Home Delivery Address" : "Office Delivery Address"}</div>
               <div className="text-xs text-muted-foreground mt-1.5 leading-relaxed">House 12, Road 7, Dhanmondi, Dhaka</div>
               <div className="mt-3 flex gap-3 text-xs font-semibold">
-                <button onClick={() => toast.info("Address editing coming soon")} className="text-maroon hover:underline cursor-pointer">Edit</button>
+                <button onClick={() => toast.info("Address edit coming soon")} className="text-maroon hover:underline cursor-pointer">Edit</button>
                 <button onClick={() => toast.info("Address delete coming soon")} className="text-muted-foreground hover:text-destructive cursor-pointer">Delete</button>
               </div>
             </div>
@@ -160,7 +186,6 @@ function Account() {
 
         <TabsContent value="return" className="bg-card rounded-2xl p-6 mt-4 border border-border/60">
           <h3 className="font-display text-lg font-semibold">Request a return / exchange</h3>
-          <p className="mt-1 text-xs text-muted-foreground">Read our <Link to="/return-policy" className="text-maroon underline">Return Policy</Link> before submitting.</p>
           <div className="mt-4 grid md:grid-cols-2 gap-4 text-sm">
             <input placeholder="Order ID (e.g. NGR-1043)" className="px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none" />
             <select className="px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none cursor-pointer">
@@ -170,13 +195,14 @@ function Account() {
             </select>
             <textarea placeholder="Additional details or comments" rows={4} className="md:col-span-2 px-4 py-2.5 rounded-lg bg-secondary border border-transparent focus:border-maroon outline-none" />
           </div>
-          <button onClick={() => toast.success("Exchange request submitted for review")} className="mt-4 px-5 py-2.5 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
+          <button onClick={() => toast.success("Exchange request submitted to review!")} className="mt-4 px-5 py-2.5 rounded-full bg-maroon text-primary-foreground hover:bg-maroon-deep transition text-xs font-semibold cursor-pointer">
             Submit Request
           </button>
         </TabsContent>
       </Tabs>
 
-      <button onClick={handleSignOut} className="mt-8 inline-flex items-center gap-2 text-sm text-destructive hover:underline cursor-pointer font-semibold">
+      {/* Sign out */}
+      <button onClick={handleSignOut} className="mt-8 inline-flex items-center gap-2 text-sm text-destructive hover:underline cursor-pointer font-semibold bg-transparent border-0 p-0">
         <LogOut className="h-4 w-4" /> Sign out
       </button>
     </div>

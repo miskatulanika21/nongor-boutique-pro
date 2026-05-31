@@ -16,6 +16,8 @@ const COLORS = ["#6b1f2a", "#c79a45", "#9c5566", "#5a1a25"];
 function Dashboard() {
   const { orders, products } = useAdmin();
 
+  const isDb = orders.length > 0;
+
   // Dynamic calculations from context state
   const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
   const pendingOrders = orders.filter((o) => o.status === "Pending");
@@ -25,12 +27,13 @@ function Dashboard() {
   ).length;
 
   const lowStockCount = products.filter((p) => p.stock !== undefined && p.stock <= 5).length;
-  const totalUniqueCustomers = new Set(orders.map((o) => o.customer)).size + 240;
+  const totalUniqueCustomers = new Set(orders.map((o) => o.customer)).size + (isDb ? 0 : 240);
 
-  // Today's Sales = all non-cancelled paid orders + a baseline for demo
+  // Today's Sales
+  const todayStr = new Date().toISOString().slice(0, 10);
   const todaySales = orders
-    .filter((o) => o.status !== "Cancelled" && o.paymentStatus === "Paid")
-    .reduce((sum, o) => sum + o.total, 0) + 18400;
+    .filter((o) => o.date === todayStr && o.status !== "Cancelled" && (o.paymentStatus === "Paid" || o.paymentStatus === "COD"))
+    .reduce((sum, o) => sum + o.total, 0) + (isDb ? 0 : 18400);
 
   const pendingCountForChart = orders.filter((o) => o.status === "Pending").length;
   const confirmedCountForChart = orders.filter((o) => o.status === "Confirmed").length;
@@ -38,11 +41,33 @@ function Dashboard() {
   const deliveredCountForChart = orders.filter((o) => o.status === "Delivered").length;
 
   const dynamicOrderStatusChart = [
-    { name: "Pending", value: pendingCountForChart || 5 },
-    { name: "Confirmed", value: confirmedCountForChart || 3 },
-    { name: "Shipped", value: shippedCountForChart || 8 },
-    { name: "Delivered", value: deliveredCountForChart || 15 },
+    { name: "Pending", value: pendingCountForChart || (isDb ? 0 : 5) },
+    { name: "Confirmed", value: confirmedCountForChart || (isDb ? 0 : 3) },
+    { name: "Shipped", value: shippedCountForChart || (isDb ? 0 : 8) },
+    { name: "Delivered", value: deliveredCountForChart || (isDb ? 0 : 15) },
   ];
+
+  // Last 7 days dynamic sales chart
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return d.toISOString().slice(0, 10);
+  }).reverse();
+
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dynamicSalesChart = last7Days.map(dateStr => {
+    const dayName = daysOfWeek[new Date(dateStr).getDay()];
+    const dayOrders = orders.filter(
+      o => o.date === dateStr && o.status !== "Cancelled"
+    );
+    const salesSum = dayOrders.reduce((sum, o) => sum + o.total, 0);
+    return {
+      day: dayName,
+      sales: salesSum,
+    };
+  });
+
+  const chartData = isDb ? dynamicSalesChart : salesChart;
 
   const recentOrders = orders.slice(0, 5);
   const bestSellers = products.filter((p) => p.isBestSeller).slice(0, 3);
@@ -65,7 +90,7 @@ function Dashboard() {
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={salesChart}>
+              <AreaChart data={chartData}>
                 <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#6b1f2a" stopOpacity={0.5} /><stop offset="100%" stopColor="#6b1f2a" stopOpacity={0} /></linearGradient></defs>
                 <XAxis dataKey="day" stroke="#999" fontSize={11} />
                 <YAxis stroke="#999" fontSize={11} />

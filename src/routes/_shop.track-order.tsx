@@ -1,12 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, Phone, MessageCircle, AlertTriangle, Loader2 } from "lucide-react";
-import { useAdmin } from "@/store/admin";
 import { taka } from "@/lib/format";
 import { toast } from "sonner";
 import { trackOrder } from "@/services/orders";
+import { trackOrderSchema, normalizePhone } from "@/lib/validation";
+
+type TrackSearch = { orderId?: string; phone?: string };
 
 export const Route = createFileRoute("/_shop/track-order")({
+  validateSearch: (search: Record<string, unknown>): TrackSearch => ({
+    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+    phone: typeof search.phone === "string" ? search.phone : undefined,
+  }),
   head: () => ({ meta: [{ title: "Track Order — Nongor" }] }),
   component: Track,
 });
@@ -15,73 +21,57 @@ const stages = ["Order Placed", "Confirmed", "Processing", "Packed", "Shipped", 
 
 function getStageIndex(status: string): number {
   switch (status) {
-    case "Pending": return 0;
-    case "Confirmed": return 1;
-    case "Processing": return 2;
-    case "Packed": return 3;
-    case "Shipped": return 4;
-    case "Delivered": return 5;
-    case "Cancelled": return -1;
+    case "Pending": case "pending": return 0;
+    case "Confirmed": case "confirmed": return 1;
+    case "Processing": case "processing": return 2;
+    case "Packed": case "packed": return 3;
+    case "Shipped": case "shipped": return 4;
+    case "Delivered": case "delivered": return 5;
+    case "Cancelled": case "cancelled": return -1;
     default: return 0;
   }
 }
 
 function Track() {
-  const { orders } = useAdmin();
-  const [orderId, setOrderId] = useState("NGR-1040"); // mock defaults
-  const [phone, setPhone] = useState("01911-998877");
+  const searchParams = Route.useSearch();
+  const [orderId, setOrderId] = useState(searchParams.orderId ?? "");
+  const [phone, setPhone] = useState(searchParams.phone ?? "");
   const [trackedOrder, setTrackedOrder] = useState<any>(null);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleTrack = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Auto-search if params provided
+  useEffect(() => {
+    if (searchParams.orderId && searchParams.phone) {
+      handleTrackDirect(searchParams.orderId, searchParams.phone);
+    }
+  }, []);
+
+  const handleTrackDirect = async (id: string, ph: string) => {
     setError("");
+    setFieldErrors({});
     setTrackedOrder(null);
     setHasSearched(true);
-
-    if (!orderId.trim()) {
-      setError("Please enter your Order ID.");
-      return;
-    }
-    if (!phone.trim()) {
-      setError("Please enter your Phone number.");
-      return;
-    }
-
     setLoading(true);
+
     try {
-      const res = await trackOrder(orderId.trim(), phone.trim());
+      const res = await trackOrder(id.trim(), normalizePhone(ph));
       if (res.found && res.order) {
-        const o = res.order;
+        const o = res.order as any;
         setTrackedOrder({
-          id: o.order_number,
-          customer: o.customer_name,
-          phone: phone.trim(),
-          status: o.order_status === "pending" ? "Pending" : o.order_status === "confirmed" ? "Confirmed" : o.order_status === "processing" ? "Processing" : o.order_status === "packed" ? "Packed" : o.order_status === "shipped" ? "Shipped" : o.order_status === "delivered" ? "Delivered" : o.order_status === "cancelled" ? "Cancelled" : o.order_status,
+          id: o.order_number ?? id,
+          customer: o.customer_name ?? "Customer",
+          phone: ph,
+          status: capitalize(o.order_status ?? "pending"),
           courier: o.courier_name,
           trackingId: o.tracking_id,
-          total: o.total_amount,
+          total: o.total_amount ?? 0,
         });
-        toast.success("Order status retrieved successfully!");
-        setLoading(false);
-        return;
-      }
-
-      // Offline / Local Mock Fallback
-      const cleanPhoneInput = phone.replace(/[-\s]/g, "");
-      const match = orders.find(
-        (o) =>
-          o.id.toLowerCase().trim() === orderId.toLowerCase().trim() &&
-          o.phone.replace(/[-\s]/g, "") === cleanPhoneInput
-      );
-
-      if (match) {
-        setTrackedOrder(match);
-        toast.success("Order status retrieved (Offline Mode)!");
+        toast.success("Order status retrieved!");
       } else {
-        setError("No matching order was found with that ID and phone number combination.");
+        setError("No matching order found with that order number and phone number.");
         toast.error("Order not found");
       }
     } catch (err) {
@@ -92,6 +82,24 @@ function Track() {
     }
   };
 
+  const handleTrack = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFieldErrors({});
+
+    const result = trackOrderSchema.safeParse({ orderId, phone });
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      result.error.issues.forEach((i) => {
+        const key = i.path[0] as string;
+        if (!errs[key]) errs[key] = i.message;
+      });
+      setFieldErrors(errs);
+      return;
+    }
+
+    await handleTrackDirect(result.data.orderId, result.data.phone);
+  };
+
   const currentStage = trackedOrder ? getStageIndex(trackedOrder.status) : -1;
 
   return (
@@ -99,30 +107,46 @@ function Track() {
       <div className="text-center">
         <div className="text-xs uppercase tracking-[0.3em] text-gold font-semibold">Order Tracking</div>
         <h1 className="mt-2 font-display text-4xl md:text-5xl">Where's my order?</h1>
-        <p className="mt-2 text-muted-foreground text-sm">Enter your order ID and phone number to see live status.</p>
+        <p className="mt-2 text-muted-foreground text-sm">Enter your order number and phone to see live status.</p>
       </div>
 
-      <form onSubmit={handleTrack} className="mt-8 bg-card rounded-2xl p-6 shadow-soft grid sm:grid-cols-[1fr_1fr_auto] gap-3 border border-border/40">
-        <input
-          placeholder="Order ID (e.g. NGR-1042)"
-          value={orderId}
-          onChange={(e) => setOrderId(e.target.value)}
-          className="px-4 py-3 rounded-lg bg-secondary text-sm outline-none border border-transparent focus:border-maroon transition font-mono uppercase"
-        />
-        <input
-          placeholder="Phone number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="px-4 py-3 rounded-lg bg-secondary text-sm outline-none border border-transparent focus:border-maroon transition"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-maroon hover:bg-maroon-deep text-primary-foreground rounded-lg px-6 py-3 text-sm font-semibold cursor-pointer transition shadow-soft flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-          Track Order
-        </button>
+      <form onSubmit={handleTrack} className="mt-8 bg-card rounded-2xl p-6 shadow-soft border border-border/40">
+        <div className="grid sm:grid-cols-[1fr_1fr_auto] gap-3">
+          <div>
+            <input
+              placeholder="Order number (e.g. NGR-000001)"
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
+              className={`w-full px-4 py-3 rounded-lg bg-secondary text-sm outline-none border transition font-mono uppercase ${
+                fieldErrors.orderId ? "border-rose-400 bg-rose-50/50" : "border-transparent focus:border-maroon"
+              }`}
+            />
+            {fieldErrors.orderId && (
+              <p className="mt-1 text-[11px] text-rose-700 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {fieldErrors.orderId}</p>
+            )}
+          </div>
+          <div>
+            <input
+              placeholder="Phone number"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className={`w-full px-4 py-3 rounded-lg bg-secondary text-sm outline-none border transition ${
+                fieldErrors.phone ? "border-rose-400 bg-rose-50/50" : "border-transparent focus:border-maroon"
+              }`}
+            />
+            {fieldErrors.phone && (
+              <p className="mt-1 text-[11px] text-rose-700 flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {fieldErrors.phone}</p>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="bg-maroon hover:bg-maroon-deep text-primary-foreground rounded-lg px-6 py-3 text-sm font-semibold cursor-pointer transition shadow-soft flex items-center justify-center gap-2 disabled:opacity-50 h-fit self-start"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            Track Order
+          </button>
+        </div>
       </form>
 
       {error && hasSearched && (
@@ -137,7 +161,7 @@ function Track() {
           <div className="mt-8 bg-card rounded-2xl p-6 md:p-8 shadow-soft border border-border/40 animate-fade-up">
             <div className="flex items-center justify-between flex-wrap gap-2 border-b border-border/40 pb-4">
               <div>
-                <div className="text-xs text-muted-foreground">Order ID</div>
+                <div className="text-xs text-muted-foreground">Order Number</div>
                 <div className="font-display text-2xl text-maroon font-bold font-mono">{trackedOrder.id}</div>
               </div>
               <div className="text-right">
@@ -199,4 +223,8 @@ function Track() {
       )}
     </div>
   );
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

@@ -13,6 +13,7 @@ import { approvePayment as approvePaymentService, rejectPayment as rejectPayment
 import { adminGetAllCoupons } from "@/services/coupons";
 import { getSettings, adminUpdateSetting } from "@/services/settings";
 import { toMockProducts } from "@/lib/product-adapter";
+import { useAuth } from "@/hooks/useAuth";
 
 /* ──────────────────────────── Types ──────────────────────────── */
 
@@ -29,7 +30,7 @@ export type Coupon = {
 export type AdminAuth = { isAdmin: boolean; email: string; userId?: string };
 
 export type AdminState = {
-  /* auth */
+  /* auth — delegated to shared useAuth */
   auth: AdminAuth;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -133,134 +134,25 @@ function toMockOrder(o: any): Order {
 const Ctx = createContext<AdminState | null>(null);
 
 export function AdminProvider({ children }: { children: ReactNode }) {
-  /* ───── Auth state ───── */
-  const [auth, setAuth] = useState<AdminAuth>(() =>
-    load("nongor_admin_auth", { isAdmin: false, email: "" }),
-  );
-  const [authLoading, setAuthLoading] = useState(true);
+  /* ───── Auth: delegated to shared useAuth ───── */
+  const sharedAuth = useAuth();
 
-  // On mount: check Supabase session if configured
-  useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setAuthLoading(false);
-      return;
-    }
+  const auth: AdminAuth = {
+    isAdmin: sharedAuth.isAdmin,
+    email: sharedAuth.profile?.email ?? "",
+    userId: sharedAuth.profile?.id,
+  };
 
-    let mounted = true;
+  const authLoading = sharedAuth.isLoading;
 
-    // Check existing session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!mounted) return;
-
-      if (session?.user) {
-        // Check if user is admin
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", session.user.id)
-          .single();
-
-        if (mounted) {
-          const isAdmin = profile?.role === "admin";
-          const newAuth: AdminAuth = {
-            isAdmin,
-            email: session.user.email ?? "",
-            userId: session.user.id,
-          };
-          setAuth(newAuth);
-          save("nongor_admin_auth", newAuth);
-        }
-      }
-      if (mounted) setAuthLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        if (event === "SIGNED_OUT" || !session) {
-          const noAuth: AdminAuth = { isAdmin: false, email: "" };
-          setAuth(noAuth);
-          save("nongor_admin_auth", noAuth);
-          return;
-        }
-
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", session.user.id)
-            .single();
-
-          if (mounted) {
-            const isAdmin = profile?.role === "admin";
-            const newAuth: AdminAuth = {
-              isAdmin,
-              email: session.user.email ?? "",
-              userId: session.user.id,
-            };
-            setAuth(newAuth);
-            save("nongor_admin_auth", newAuth);
-          }
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  /* ───── Login: Supabase Auth with admin role check ───── */
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
-    if (!isSupabaseConfigured) {
-      // Fallback mock login for development without Supabase
-      if (email === "admin@nongor.com" && password === "nongor2024") {
-        const a: AdminAuth = { isAdmin: true, email };
-        setAuth(a);
-        save("nongor_admin_auth", a);
-        return true;
-      }
-      return false;
-    }
+    const result = await sharedAuth.signIn(email, password);
+    return result.success && result.role === "admin";
+  }, [sharedAuth.signIn]);
 
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error || !data.user) {
-      console.error("[auth] login error:", error);
-      return false;
-    }
-
-    // Check admin role
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
-    if (profile?.role !== "admin") {
-      // Not an admin — sign them out of the admin panel
-      await supabase.auth.signOut();
-      return false;
-    }
-
-    const a: AdminAuth = { isAdmin: true, email: data.user.email ?? "", userId: data.user.id };
-    setAuth(a);
-    save("nongor_admin_auth", a);
-    return true;
-  }, []);
-
-  /* ───── Logout ───── */
   const logout = useCallback(async () => {
-    if (isSupabaseConfigured) {
-      await supabase.auth.signOut();
-    }
-    const a: AdminAuth = { isAdmin: false, email: "" };
-    setAuth(a);
-    save("nongor_admin_auth", a);
-  }, []);
+    await sharedAuth.signOut();
+  }, [sharedAuth.signOut]);
 
   /* ───── State Declarations ───── */
   const [products, setProducts] = useState<Product[]>(() =>

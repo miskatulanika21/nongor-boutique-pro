@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { products } from "@/data/mock";
+import { usePublishedProducts } from "@/hooks/useProducts";
 import { ProductCard } from "@/components/ProductCard";
-import { SlidersHorizontal, Grid3x3, List, ChevronDown, X, Search } from "lucide-react";
+import { SlidersHorizontal, Grid3x3, List, ChevronDown, X, Search, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 type ShopSearch = { q?: string; category?: string; size?: string };
@@ -25,6 +25,7 @@ const collections = ["Handmade Kurti", "New Arrival", "Best Seller", "Festive Co
 function Shop() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/shop" });
+  const { products, loading: productsLoading } = usePublishedProducts();
   const [sort, setSort] = useState("newest");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [q, setQ] = useState(search.q ?? "");
@@ -186,7 +187,20 @@ function Shop() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          {productsLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse">
+                  <div className="aspect-[4/5] bg-cream" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 w-3/4 bg-cream rounded" />
+                    <div className="h-3 w-1/2 bg-cream rounded" />
+                    <div className="h-5 w-1/3 bg-cream rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="bg-card rounded-2xl p-16 text-center">
               <div className="font-display text-2xl">No pieces found</div>
               <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or search term.</p>

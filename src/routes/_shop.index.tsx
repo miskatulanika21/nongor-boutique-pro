@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Heart, Truck, ShieldCheck, Scissors, ChevronLeft, ChevronRight } from "lucide-react";
-import { categories, testimonials } from "@/data/mock";
+import { testimonials } from "@/data/mock";
 import { useNewArrivals, useBestSellers, useAllProducts } from "@/hooks/useProducts";
+import { useActiveCategories } from "@/hooks/useCategories";
 import { ProductCard } from "@/components/ProductCard";
 import logo from "@/assets/nongor-logo.png";
 import { useState, useEffect } from "react";
@@ -17,9 +18,10 @@ export const Route = createFileRoute("/_shop/")({
 });
 
 function Home() {
-  const { products: newArrivals } = useNewArrivals(4);
-  const { products: bestSellers } = useBestSellers(4);
+  const { products: newArrivals, loading: newArrivalsLoading } = useNewArrivals(4);
+  const { products: bestSellers, loading: bestSellersLoading } = useBestSellers(4);
   const { products: allProducts } = useAllProducts();
+  const { categories } = useActiveCategories();
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
@@ -208,7 +210,16 @@ function Home() {
           <Link to="/shop" className="hidden md:inline-flex items-center gap-1 text-sm text-maroon font-medium hover:gap-2 transition-all">View all <ArrowRight className="h-4 w-4" /></Link>
         </div>
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-          {newArrivals.map((p) => <ProductCard key={p.id} p={p} />)}
+          {newArrivalsLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse">
+                <div className="aspect-[4/5] bg-cream" />
+                <div className="p-4 space-y-2"><div className="h-4 w-3/4 bg-cream rounded" /><div className="h-3 w-1/2 bg-cream rounded" /></div>
+              </div>
+            ))
+          ) : (
+            newArrivals.map((p) => <ProductCard key={p.id} p={p} />)
+          )}
         </div>
       </section>
 
@@ -256,7 +267,16 @@ function Home() {
       <section className="container-narrow py-10">
         <SectionHeading eyebrow="Loved by many" title="Best Sellers" />
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
-          {bestSellers.map((p) => <ProductCard key={p.id} p={p} />)}
+          {bestSellersLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-2xl overflow-hidden shadow-soft border border-border/40 animate-pulse">
+                <div className="aspect-[4/5] bg-cream" />
+                <div className="p-4 space-y-2"><div className="h-4 w-3/4 bg-cream rounded" /><div className="h-3 w-1/2 bg-cream rounded" /></div>
+              </div>
+            ))
+          ) : (
+            bestSellers.map((p) => <ProductCard key={p.id} p={p} />)
+          )}
         </div>
       </section>
 
@@ -281,11 +301,17 @@ function Home() {
       <section className="container-narrow py-10">
         <SectionHeading eyebrow="Follow @nongor.bd" title="From the studio" />
         <div className="mt-8 grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-          {allProducts.slice(0, 6).map((p) => (
-            <div key={p.id} className="aspect-square rounded-xl overflow-hidden bg-cream">
-              <img src={p.images[0]} alt="" className="w-full h-full object-cover hover:scale-110 transition duration-700" />
-            </div>
-          ))}
+          {allProducts.length === 0 ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="aspect-square rounded-xl bg-cream animate-pulse" />
+            ))
+          ) : (
+            allProducts.slice(0, 6).map((p) => (
+              <div key={p.id} className="aspect-square rounded-xl overflow-hidden bg-cream">
+                <img src={p.images[0]} alt="" className="w-full h-full object-cover hover:scale-110 transition duration-700" />
+              </div>
+            ))
+          )}
         </div>
       </section>
 
