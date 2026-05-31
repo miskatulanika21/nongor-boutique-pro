@@ -27,9 +27,14 @@ import { Route as AdminContentRouteImport } from './routes/admin.content'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as ShopWishlistRouteImport } from './routes/_shop.wishlist'
 import { Route as ShopTrackOrderRouteImport } from './routes/_shop.track-order'
+import { Route as ShopTermsRouteImport } from './routes/_shop.terms'
 import { Route as ShopSizeGuideRouteImport } from './routes/_shop.size-guide'
 import { Route as ShopShopRouteImport } from './routes/_shop.shop'
+import { Route as ShopReturnPolicyRouteImport } from './routes/_shop.return-policy'
+import { Route as ShopResetPasswordRouteImport } from './routes/_shop.reset-password'
+import { Route as ShopPrivacyPolicyRouteImport } from './routes/_shop.privacy-policy'
 import { Route as ShopOrderSuccessRouteImport } from './routes/_shop.order-success'
+import { Route as ShopLoginRouteImport } from './routes/_shop.login'
 import { Route as ShopCheckoutRouteImport } from './routes/_shop.checkout'
 import { Route as ShopCartRouteImport } from './routes/_shop.cart'
 import { Route as ShopAccountRouteImport } from './routes/_shop.account'
@@ -125,6 +130,11 @@ const ShopTrackOrderRoute = ShopTrackOrderRouteImport.update({
   path: '/track-order',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopTermsRoute = ShopTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ShopSizeGuideRoute = ShopSizeGuideRouteImport.update({
   id: '/size-guide',
   path: '/size-guide',
@@ -135,9 +145,29 @@ const ShopShopRoute = ShopShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => ShopRoute,
 } as any)
+const ShopReturnPolicyRoute = ShopReturnPolicyRouteImport.update({
+  id: '/return-policy',
+  path: '/return-policy',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopResetPasswordRoute = ShopResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopPrivacyPolicyRoute = ShopPrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => ShopRoute,
+} as any)
 const ShopOrderSuccessRoute = ShopOrderSuccessRouteImport.update({
   id: '/order-success',
   path: '/order-success',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopLoginRoute = ShopLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => ShopRoute,
 } as any)
 const ShopCheckoutRoute = ShopCheckoutRouteImport.update({
@@ -173,9 +203,14 @@ export interface FileRoutesByFullPath {
   '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
+  '/login': typeof ShopLoginRoute
   '/order-success': typeof ShopOrderSuccessRoute
+  '/privacy-policy': typeof ShopPrivacyPolicyRoute
+  '/reset-password': typeof ShopResetPasswordRoute
+  '/return-policy': typeof ShopReturnPolicyRoute
   '/shop': typeof ShopShopRoute
   '/size-guide': typeof ShopSizeGuideRoute
+  '/terms': typeof ShopTermsRoute
   '/track-order': typeof ShopTrackOrderRoute
   '/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -199,9 +234,14 @@ export interface FileRoutesByTo {
   '/account': typeof ShopAccountRoute
   '/cart': typeof ShopCartRoute
   '/checkout': typeof ShopCheckoutRoute
+  '/login': typeof ShopLoginRoute
   '/order-success': typeof ShopOrderSuccessRoute
+  '/privacy-policy': typeof ShopPrivacyPolicyRoute
+  '/reset-password': typeof ShopResetPasswordRoute
+  '/return-policy': typeof ShopReturnPolicyRoute
   '/shop': typeof ShopShopRoute
   '/size-guide': typeof ShopSizeGuideRoute
+  '/terms': typeof ShopTermsRoute
   '/track-order': typeof ShopTrackOrderRoute
   '/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -228,9 +268,14 @@ export interface FileRoutesById {
   '/_shop/account': typeof ShopAccountRoute
   '/_shop/cart': typeof ShopCartRoute
   '/_shop/checkout': typeof ShopCheckoutRoute
+  '/_shop/login': typeof ShopLoginRoute
   '/_shop/order-success': typeof ShopOrderSuccessRoute
+  '/_shop/privacy-policy': typeof ShopPrivacyPolicyRoute
+  '/_shop/reset-password': typeof ShopResetPasswordRoute
+  '/_shop/return-policy': typeof ShopReturnPolicyRoute
   '/_shop/shop': typeof ShopShopRoute
   '/_shop/size-guide': typeof ShopSizeGuideRoute
+  '/_shop/terms': typeof ShopTermsRoute
   '/_shop/track-order': typeof ShopTrackOrderRoute
   '/_shop/wishlist': typeof ShopWishlistRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -258,9 +303,14 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/login'
     | '/order-success'
+    | '/privacy-policy'
+    | '/reset-password'
+    | '/return-policy'
     | '/shop'
     | '/size-guide'
+    | '/terms'
     | '/track-order'
     | '/wishlist'
     | '/admin/categories'
@@ -284,9 +334,14 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/login'
     | '/order-success'
+    | '/privacy-policy'
+    | '/reset-password'
+    | '/return-policy'
     | '/shop'
     | '/size-guide'
+    | '/terms'
     | '/track-order'
     | '/wishlist'
     | '/admin/categories'
@@ -312,9 +367,14 @@ export interface FileRouteTypes {
     | '/_shop/account'
     | '/_shop/cart'
     | '/_shop/checkout'
+    | '/_shop/login'
     | '/_shop/order-success'
+    | '/_shop/privacy-policy'
+    | '/_shop/reset-password'
+    | '/_shop/return-policy'
     | '/_shop/shop'
     | '/_shop/size-guide'
+    | '/_shop/terms'
     | '/_shop/track-order'
     | '/_shop/wishlist'
     | '/admin/categories'
@@ -467,6 +527,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopTrackOrderRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/terms': {
+      id: '/_shop/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof ShopTermsRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/_shop/size-guide': {
       id: '/_shop/size-guide'
       path: '/size-guide'
@@ -481,11 +548,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopShopRouteImport
       parentRoute: typeof ShopRoute
     }
+    '/_shop/return-policy': {
+      id: '/_shop/return-policy'
+      path: '/return-policy'
+      fullPath: '/return-policy'
+      preLoaderRoute: typeof ShopReturnPolicyRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/reset-password': {
+      id: '/_shop/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ShopResetPasswordRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/privacy-policy': {
+      id: '/_shop/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof ShopPrivacyPolicyRouteImport
+      parentRoute: typeof ShopRoute
+    }
     '/_shop/order-success': {
       id: '/_shop/order-success'
       path: '/order-success'
       fullPath: '/order-success'
       preLoaderRoute: typeof ShopOrderSuccessRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/_shop/login': {
+      id: '/_shop/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof ShopLoginRouteImport
       parentRoute: typeof ShopRoute
     }
     '/_shop/checkout': {
@@ -531,9 +626,14 @@ interface ShopRouteChildren {
   ShopAccountRoute: typeof ShopAccountRoute
   ShopCartRoute: typeof ShopCartRoute
   ShopCheckoutRoute: typeof ShopCheckoutRoute
+  ShopLoginRoute: typeof ShopLoginRoute
   ShopOrderSuccessRoute: typeof ShopOrderSuccessRoute
+  ShopPrivacyPolicyRoute: typeof ShopPrivacyPolicyRoute
+  ShopResetPasswordRoute: typeof ShopResetPasswordRoute
+  ShopReturnPolicyRoute: typeof ShopReturnPolicyRoute
   ShopShopRoute: typeof ShopShopRoute
   ShopSizeGuideRoute: typeof ShopSizeGuideRoute
+  ShopTermsRoute: typeof ShopTermsRoute
   ShopTrackOrderRoute: typeof ShopTrackOrderRoute
   ShopWishlistRoute: typeof ShopWishlistRoute
   ShopIndexRoute: typeof ShopIndexRoute
@@ -545,9 +645,14 @@ const ShopRouteChildren: ShopRouteChildren = {
   ShopAccountRoute: ShopAccountRoute,
   ShopCartRoute: ShopCartRoute,
   ShopCheckoutRoute: ShopCheckoutRoute,
+  ShopLoginRoute: ShopLoginRoute,
   ShopOrderSuccessRoute: ShopOrderSuccessRoute,
+  ShopPrivacyPolicyRoute: ShopPrivacyPolicyRoute,
+  ShopResetPasswordRoute: ShopResetPasswordRoute,
+  ShopReturnPolicyRoute: ShopReturnPolicyRoute,
   ShopShopRoute: ShopShopRoute,
   ShopSizeGuideRoute: ShopSizeGuideRoute,
+  ShopTermsRoute: ShopTermsRoute,
   ShopTrackOrderRoute: ShopTrackOrderRoute,
   ShopWishlistRoute: ShopWishlistRoute,
   ShopIndexRoute: ShopIndexRoute,
@@ -597,13 +702,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
