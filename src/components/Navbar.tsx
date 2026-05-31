@@ -170,12 +170,13 @@ export function Navbar() {
 export function MobileBottomNav() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { cartCount, wishlist } = useShop();
+  const { isAuthenticated } = useAuth();
   const items = [
     { to: "/", icon: Home, label: "Home" },
     { to: "/shop", icon: Store, label: "Shop" },
     { to: "/wishlist", icon: Heart, label: "Saved", badge: wishlist.length },
     { to: "/cart", icon: ShoppingBag, label: "Bag", badge: cartCount },
-    { to: "/account", icon: User, label: "Account" },
+    { to: isAuthenticated ? "/account" : "/login", icon: User, label: isAuthenticated ? "Account" : "Sign in" },
   ] as const;
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 pb-safe">
